@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.express as px
+import requests
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
 
@@ -12,16 +13,23 @@ from api_faostat import get_fao_countries, get_fao_crops, get_fao_indicators, fe
 from api_trademap import get_tm_reporters, get_tm_partners, get_tm_products, fetch_trademap_data
 from api_comtrade import get_comtrade_countries, get_comtrade_flows, get_comtrade_products, get_hs_code, fetch_comtrade_data
 
-# 1. إعدادات الصفحة
+# استدعاء دوالك الأساسية التي برمجناها
+try:
+    from api_worldbank import fetch_all_countries, fetch_worldbank_data
+except ImportError:
+    pass # سيتم تجاوز الخطأ مؤقتاً لتجنب توقف المنصة إذا كان هناك تعديل في الملفات
+
+# ==========================================
+# 🧠 إعدادات الصفحة والذاكرة المركزية
+# ==========================================
 st.set_page_config(page_title="Osman Eco-Metrics System", page_icon="📊", layout="wide")
 
-# ==========================================
-# 🧠 تأسيس الذاكرة المركزية للمنصة (Session State)
-# ==========================================
 if 'smart_memory' not in st.session_state:
-    st.session_state['smart_memory'] = None  # الذاكرة فارغة في البداية
+    st.session_state['smart_memory'] = None
 
-# 2. القائمة الجانبية
+# ==========================================
+# 🚀 القائمة الجانبية (الأجنحة)
+# ==========================================
 st.sidebar.title("🚀 أجنحة المختبر الرقمي")
 st.sidebar.markdown("---")
 
@@ -48,15 +56,16 @@ app_mode = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.success("Designed by: Prof. Dr. Mohamed Osman (Egypt) © 2026")
 
-# 3. برمجة محتوى الأجنحة
-
+# ==========================================
+# 🏠 الجناح الرئيسي
+# ==========================================
 if app_mode == "🏠 الصفحة الرئيسية":
     st.markdown("<h1 style='color: #2E86C1; text-align: center;'>📊 Osman Eco-Metrics System</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='color: #34495E; text-align: center;'>المدرسة الإيكو-ديناميكية الرقمية | مختبر القياس المتعدد الشامل</h3>", unsafe_allow_html=True)
-    st.info("👈 يرجى اختيار جناح التحليل من القائمة الجانبية.")
+    st.info("👈 يرجى اختيار جناح التحليل من القائمة الجانبية لتفعيل الخوارزميات.")
 
 # ==========================================
-# 🕸️ الجناح الأول: رادار الحصاد الآلي (النسخة الشاملة المفتوحة)
+# 🕸️ رادار الحصاد الآلي (النسخة الشاملة الحية)
 # ==========================================
 elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
     st.markdown("<h1 style='color: #E67E22;'>🕸️ رادار الحصاد الآلي للبيانات</h1>", unsafe_allow_html=True)
@@ -73,37 +82,31 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
         col1, col2 = st.columns(2)
         
         with col1:
-            # 1. استدعاء جميع دول العالم ديناميكياً
             try:
-                # نستخدم دالتك الأصلية لجلب الدول
                 countries_dict = fetch_all_countries() 
                 if isinstance(countries_dict, dict):
                     country_name = st.selectbox("اختر الدولة:", list(countries_dict.keys()))
                     country_code = countries_dict[country_name]
                 else:
-                    # في حال كانت الدالة ترجع قائمة
                     country_code = st.selectbox("اختر كود الدولة:", countries_dict)
             except Exception as e:
-                st.error("جاري إعداد قائمة الدول...")
-                country_code = st.text_input("أو أدخل كود الدولة (مثال: EGY)", value="EGY")
+                st.warning("جاري إعداد قائمة الدول...")
+                country_code = st.text_input("أو أدخل كود الدولة يدوياً (مثال: EGY)", value="EGY")
                 
         with col2:
-            # 2. استدعاء آلاف المؤشرات من ملفك المترجم (wb_indicators_ar.csv)
             try:
+                # قراءة ملف المؤشرات مباشرة كما اتفقنا
                 df_indicators = pd.read_csv("wb_indicators_ar.csv")
-                # افتراض أن العمود الأول هو الاسم والعمود الثاني هو الكود
                 indicator_name = st.selectbox("ابحث واختر المؤشر (يوجد آلاف المؤشرات):", df_indicators.iloc[:, 0].tolist())
                 indicator_code = df_indicators[df_indicators.iloc[:, 0] == indicator_name].iloc[0, 1]
             except Exception as e:
-                st.warning("يرجى التأكد من وجود ملف wb_indicators_ar.csv في المستودع.")
+                st.warning(f"يرجى التأكد من مسار ملف wb_indicators_ar.csv. الخطأ: {e}")
                 indicator_code = st.text_input("أو أدخل كود المؤشر يدوياً:", value="NY.GDP.MKTP.CD")
                 
         if st.button("بدء الحصاد الشامل 📡"):
             with st.spinner("جاري مسح قواعد البنك الدولي وسحب السلسلة الزمنية..."):
                 try:
-                    # 3. استخدام دالتك القوية لجلب البيانات التاريخية
                     df_result = fetch_worldbank_data(country_code, indicator_code)
-                    
                     if df_result is not None and not df_result.empty:
                         st.session_state['smart_memory'] = df_result
                         st.success("✅ تمت العملية بنجاح! تم التقاط السلسلة الزمنية وحفظها في ذاكرة المنصة.")
@@ -113,45 +116,22 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                         st.warning("عفواً، لا توجد بيانات مسجلة لهذا المؤشر في هذه الدولة.")
                 except Exception as e:
                     st.error(f"حدث خطأ أثناء جلب البيانات: {e}")
-    else:
-        # باقي المنظمات مؤقتاً لحين ربط دوالها
-        st.info("جاري تجهيز دوال الحصاد الشامل لهذه المنظمة (FAO / TradeMap / Comtrade) في ملفاتها البرمجية المخصصة.")
-                elif source == "منظمة الأغذية والزراعة (FAO)":
-                    df_result = pd.DataFrame({
-                        "المحصول": ["قمح", "أرز", "ذرة"],
-                        "الإنتاج (مليون طن)": [9.0, 4.8, 7.5],
-                        "السنة": [2023, 2023, 2023]
-                    })
-                elif source == "الأمم المتحدة - خريطة التجارة (TradeMap)":
-                    df_result = pd.DataFrame({
-                        "المحصول": ["فراولة (مجمدة)", "فاصوليا خضراء", "بصل"],
-                        "مؤشر الاختراق السوقي": [0.85, 0.72, 0.65],
-                        "كفاءة التصدير (%)": [88, 75, 80]
-                    })
-                elif source == "الأمم المتحدة - كومتريد (UN Comtrade)":
-                    df_result = pd.DataFrame({
-                        "كود HS": ["070190", "121291"],
-                        "السلعة": ["بطاطس", "بنجر السكر"],
-                        "قيمة الصادرات (ألف دولار)": [250000, 150000],
-                        "السنة": [2023, 2023]
-                    })
-                
-                # إيداع البيانات في الذاكرة المركزية
-                st.session_state['smart_memory'] = df_result
-                
-                st.success("✅ تمت العملية بنجاح! تم التقاط البيانات وإيداعها في ذاكرة المنصة.")
-                st.dataframe(df_result)
-                st.info("الآن.. اذهب إلى جناح (المساعد الذكي Gemini) لتجعله يكتب تقريراً عن هذه الأرقام!")
-                
-            except Exception as e:
-                st.error(f"حدث خطأ في الاتصال: {e}")
+                    
+    elif source == "منظمة الأغذية والزراعة (FAO) - قيد التفعيل":
+        st.info("جاري تجهيز دوال الحصاد الشامل لمنظمة الأغذية والزراعة (FAO).")
+        
+    elif source == "الأمم المتحدة - خريطة التجارة (TradeMap) - قيد التفعيل":
+        st.info("جاري تجهيز دوال الحصاد لبيانات خريطة التجارة (TradeMap).")
+        
+    elif source == "الأمم المتحدة - كومتريد (UN Comtrade) - قيد التفعيل":
+        st.info("جاري تجهيز دوال الحصاد لبيانات الأمم المتحدة (UN Comtrade).")
+
 # ==========================================
-# ✨ الجناح الثاني: المساعد الذكي وصياغة التقارير
+# ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
 elif app_mode == "✨ المساعد الذكي وصياغة التقارير (Gemini AI)":
     st.markdown("<h1 style='color: #9B59B6;'>✨ المساعد الذكي (Gemini AI) وصياغة التقارير</h1>", unsafe_allow_html=True)
     
-    # التحقق من ذاكرة المنصة
     if st.session_state['smart_memory'] is not None:
         st.success("🧠 عظيم! لقد وجدتُ بيانات مخزنة في الذاكرة قادمة من (رادار الحصاد).")
         st.write("البيانات الحالية:")
@@ -162,9 +142,10 @@ elif app_mode == "✨ المساعد الذكي وصياغة التقارير (G
                 import google.generativeai as genai
                 api_key = st.secrets["GEMINI_API_KEY"]
                 genai.configure(api_key=api_key)
+                
+                # استخدام النموذج الأحدث المطلوب من جوجل
                 model = genai.GenerativeModel('gemini-3.8-flash')
                 
-                # تحويل الجدول إلى نص ليفهمه الذكاء الاصطناعي
                 data_string = st.session_state['smart_memory'].to_string()
                 
                 with st.spinner("جاري صياغة التقرير الأكاديمي بناءً على بيانات الرادار..."):
@@ -195,4 +176,4 @@ elif app_mode == "✨ المساعد الذكي وصياغة التقارير (G
 # ==========================================
 else:
     st.markdown(f"<h1 style='color: #7F8C8D;'>{app_mode}</h1>", unsafe_allow_html=True)
-    st.write("جاري ربط الخوارزميات وبناء هذا الجناح...")
+    st.write("...جاري ربط الخوارزميات وبناء هذا الجناح...")
