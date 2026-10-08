@@ -1,0 +1,256 @@
+﻿Country_Name,Country_Code
+Afghanistan,4
+Albania,8
+Algeria,12
+Andorra,20
+Angola,24
+Anguilla,660
+Antigua and Barbuda,28
+Arab Rep. of Yemen (...1990),886
+Argentina,32
+Armenia,51
+Aruba,533
+ASEAN,975
+Australia,36
+Austria,40
+Azerbaijan,31
+Bahamas,44
+Bahrain,48
+Bangladesh,50
+Barbados,52
+Belarus,112
+Belgium,56
+Belgium-Luxembourg (...1998),58
+Belize,84
+Benin,204
+Bermuda,60
+Bhutan,64
+Bolivia (Plurinational State of),68
+Bonaire,535
+Bosnia Herzegovina,70
+Botswana,72
+Br. Virgin Isds,92
+Brazil,76
+Brunei Darussalam,96
+Bulgaria,100
+Burkina Faso,854
+Burundi,108
+Cabo Verde,132
+Cambodia,116
+Cameroon,120
+Canada,124
+Cayman Isds,136
+Central African Rep.,140
+Chad,148
+Chile,152
+China,156
+"China, Hong Kong SAR",344
+"China, Macao SAR",446
+Colombia,170
+Comoros,174
+Congo,178
+Cook Isds,184
+Costa Rica,188
+Côte d'Ivoire,384
+Croatia,191
+Cuba,192
+Curaçao,531
+Cyprus,196
+Czechia,203
+Czechoslovakia (...1992),200
+Dem. People's Rep. of Korea,408
+Dem. Rep. of Germany (...1990),278
+Dem. Rep. of the Congo,180
+Dem. Rep. of Vietnam (...1974),866
+Dem. Yemen (...1990),720
+Denmark,208
+Djibouti,262
+Dominica,212
+Dominican Rep.,214
+East and West Pakistan (...1971),588
+Ecuador,218
+Egypt,818
+El Salvador,222
+Equatorial Guinea,226
+Eritrea,232
+Estonia,233
+Eswatini,748
+Ethiopia,231
+Ethiopia (...1992),230
+European Union,97
+Faroe Isds,234
+Fed. Rep. of Germany (...1990),280
+Fiji,242
+Finland,246
+France,251
+French Guiana (Overseas France),254
+French Polynesia,258
+FS Micronesia,583
+Gabon,266
+Gambia,270
+Georgia,268
+Germany,276
+Ghana,288
+Gibraltar,292
+Greece,300
+Greenland,304
+Grenada,308
+Guadeloupe (Overseas France),312
+Guatemala,320
+Guinea,324
+Guinea-Bissau,624
+Guyana,328
+Haiti,332
+Holy See (Vatican City State),336
+Honduras,340
+Hungary,348
+Iceland,352
+India,699
+India (...1974),356
+Indonesia,360
+Iran,364
+Iraq,368
+Ireland,372
+Israel,376
+Italy,380
+Jamaica,388
+Japan,392
+Jordan,400
+Kazakhstan,398
+Kenya,404
+Kiribati,296
+Kuwait,414
+Kyrgyzstan,417
+Lao People's Dem. Rep.,418
+Latvia,428
+Lebanon,422
+Lesotho,426
+Liberia,430
+Libya,434
+Lithuania,440
+Luxembourg,442
+Madagascar,450
+Malawi,454
+Malaysia,458
+Maldives,462
+Mali,466
+Malta,470
+Marshall Isds,584
+Martinique (Overseas France),474
+Mauritania,478
+Mauritius,480
+Mayotte (Overseas France),175
+Mexico,484
+Mongolia,496
+Montenegro,499
+Montserrat,500
+Morocco,504
+Mozambique,508
+Myanmar,104
+N. Mariana Isds,580
+Namibia,516
+Naoero,520
+Nepal,524
+Netherlands,528
+Netherlands Antilles (...2010),530
+Netherlands Antilles and Aruba (...1985),532
+New Caledonia,540
+New Zealand,554
+Nicaragua,558
+Niger,562
+Nigeria,566
+Niue,570
+North Macedonia,807
+Norway,579
+Oman,512
+"Other Asia, nes",490
+Pacific Isds (...1991),582
+Pakistan,586
+Palau,585
+Panama,591
+"Panama, excl.Canal Zone (...1977)",590
+Panama-Canal-Zone (...1977),592
+Papua New Guinea,598
+Paraguay,600
+Peninsula Malaysia (...1963),459
+Peru,604
+Philippines,608
+Poland,616
+Portugal,620
+Qatar,634
+Rep. of Korea,410
+Rep. of Moldova,498
+Rep. of Vietnam (...1974),868
+Réunion (Overseas France),638
+Rhodesia Nyas (...1964),717
+Romania,642
+Russian Federation,643
+Rwanda,646
+Sabah (...1963),461
+Saint Barthélemy,652
+Saint Helena,654
+Saint Kitts and Nevis,659
+"Saint Kitts, Nevis and Anguilla (...1980)",658
+Saint Lucia,662
+Saint Maarten,534
+Saint Pierre and Miquelon,666
+Saint Vincent and the Grenadines,670
+Samoa,882
+San Marino,674
+Sao Tome and Principe,678
+Saudi Arabia,682
+Senegal,686
+Serbia,688
+Serbia and Montenegro (...2005),891
+Seychelles,690
+Sierra Leone,694
+Singapore,702
+Slovakia,703
+Slovenia,705
+Solomon Isds,90
+Somalia,706
+South Africa,710
+South Sudan,728
+Southern African Customs Union (...1999),711
+Spain,724
+Sri Lanka,144
+State of Palestine,275
+Sudan,729
+Sudan (...2011),736
+Suriname,740
+Sweden,752
+Switzerland,757
+Syria,760
+Tajikistan,762
+Tanganyika (...1964),835
+Thailand,764
+Timor-Leste,626
+Togo,768
+Tokelau,772
+Tonga,776
+Trinidad and Tobago,780
+Tunisia,788
+Türkiye,792
+Turkmenistan,795
+Turks and Caicos Isds,796
+Tuvalu,798
+Uganda,800
+Ukraine,804
+United Arab Emirates,784
+United Kingdom,826
+United Rep. of Tanzania,834
+Uruguay,858
+US Virgin Isds (...1980),850
+USA,842
+USA and Puerto Rico (...1980),841
+USSR (...1990),810
+Uzbekistan,860
+Vanuatu,548
+Venezuela,862
+Viet Nam,704
+Wallis and Futuna Isds,876
+Yemen,887
+Yugoslavia (...1991),890
+Zambia,894
+Zanzibar and Pemba Isd (...1964),836
+Zimbabwe,716
