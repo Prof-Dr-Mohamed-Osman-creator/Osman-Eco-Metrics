@@ -79,13 +79,16 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
     ])
     
     if source == "البنك الدولي (World Bank)":
+        # إضافة مفتاح اختيار اللغة
+        lang = st.radio("🌐 لغة المؤشرات (Indicators Language):", ["العربية", "English"], horizontal=True)
+        
         col1, col2 = st.columns(2)
         
         with col1:
             try:
                 countries_dict = fetch_all_countries() 
                 if isinstance(countries_dict, dict):
-                    country_name = st.selectbox("اختر الدولة:", list(countries_dict.keys()))
+                    country_name = st.selectbox("اختر الدولة / Select Country:", list(countries_dict.keys()))
                     country_code = countries_dict[country_name]
                 else:
                     country_code = st.selectbox("اختر كود الدولة:", countries_dict)
@@ -95,33 +98,36 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                 
         with col2:
             try:
-                # قراءة ملف المؤشرات
-                df_indicators = pd.read_csv("wb_indicators_ar.csv")
-                indicator_name = st.selectbox("ابحث واختر المؤشر (يوجد آلاف المؤشرات):", df_indicators.iloc[:, 0].tolist())
+                # قراءة الملف ديناميكياً بناءً على اختيار الباحث
+                if lang == "العربية":
+                    df_indicators = pd.read_csv("wb_indicators_ar.csv")
+                    label_text = "ابحث واختر المؤشر (يوجد آلاف المؤشرات):"
+                else:
+                    df_indicators = pd.read_csv("wb_indicators_en.csv")
+                    label_text = "Search & Select Indicator:"
+                    
+                indicator_name = st.selectbox(label_text, df_indicators.iloc[:, 0].tolist())
                 indicator_code = df_indicators[df_indicators.iloc[:, 0] == indicator_name].iloc[0, 1]
             except Exception as e:
-                st.warning(f"يرجى التأكد من مسار ملف wb_indicators_ar.csv. الخطأ: {e}")
+                st.warning(f"يرجى التأكد من مسار ملفات المؤشرات. الخطأ: {e}")
                 indicator_code = st.text_input("أو أدخل كود المؤشر يدوياً:", value="NY.GDP.MKTP.CD")
                 
-        # 👈 الإضافة الجديدة: شريط تحديد السلسلة الزمنية
         st.markdown("---")
         start_year, end_year = st.slider(
-            "🗓️ حدد فترة السلسلة الزمنية:", 
+            "🗓️ حدد فترة السلسلة الزمنية / Select Time Period:", 
             min_value=1960, 
             max_value=2026, 
-            value=(2000, 2023) # القيمة الافتراضية عند فتح المنصة
+            value=(2000, 2023)
         )
                 
         if st.button("بدء الحصاد الشامل 📡"):
             with st.spinner("جاري مسح قواعد البنك الدولي وسحب السلسلة الزمنية..."):
                 try:
-                    # 👈 تحديث الاستدعاء ليأخذ سنوات البداية والنهاية
                     df_result = fetch_worldbank_data(country_code, indicator_code, start_year, end_year)
                     if df_result is not None and not df_result.empty:
                         st.session_state['smart_memory'] = df_result
                         st.success("✅ تمت العملية بنجاح! تم التقاط السلسلة الزمنية وحفظها في ذاكرة المنصة.")
                         st.dataframe(df_result)
-                        st.info("👈 الأرقام الحقيقية في الذاكرة الآن.. اذهب إلى المساعد الذكي (Gemini) ليصيغ تقريرك!")
                     else:
                         st.warning("عفواً، لا توجد بيانات مسجلة لهذا المؤشر في هذه الدولة للفترة المحددة.")
                 except Exception as e:
@@ -153,23 +159,32 @@ elif app_mode == "✨ المساعد الذكي وصياغة التقارير (G
                 api_key = st.secrets["GEMINI_API_KEY"]
                 genai.configure(api_key=api_key)
                 
-                # استخدام النموذج الأحدث المطلوب من جوجل
                 model = genai.GenerativeModel('gemini-3.8-flash')
-                
                 data_string = st.session_state['smart_memory'].to_string()
                 
-                with st.spinner("جاري صياغة التقرير الأكاديمي بناءً على بيانات الرادار..."):
-                    prompt = f"""
-                    أنت خبير اقتصادي وإحصائي في "المدرسة الإيكو-ديناميكية".
-                    إليك هذا الجدول الإحصائي الذي تم سحبه من المنظمات الدولية:
-                    {data_string}
-                    
-                    قم بكتابة تقرير أكاديمي رصين يحلل هذه الأرقام، واذكر دلالاتها الاقتصادية المحتملة بلغة علمية دقيقة.
-                    """
-                    response = model.generate_content(prompt)
-                    
-                st.success("اكتمل التقرير!")
-                st.write(response.text)
+                prompt = f"""
+                أنت خبير اقتصادي وإحصائي في "المدرسة الإيكو-ديناميكية".
+                إليك هذا الجدول الإحصائي الذي تم سحبه من المنظمات الدولية:
+                {data_string}
+                
+                قم بكتابة تقرير أكاديمي رصين يحلل هذه الأرقام، واذكر دلالاتها الاقتصادية المحتملة بلغة علمية دقيقة.
+                """
+                
+                st.success("بدأت صياغة التقرير...")
+                # إنشاء مربع نصي فارغ لنقوم بتحديثه لحظة بلحظة
+                report_placeholder = st.empty()
+                full_response = ""
+                
+                # تفعيل البث المباشر (stream=True)
+                response = model.generate_content(prompt, stream=True)
+                
+                # طباعة الكلمات فور وصولها من السيرفر
+                for chunk in response:
+                    full_response += chunk.text
+                    report_placeholder.markdown(full_response + "▌") # إضافة مؤشر الكتابة النابض
+                
+                # تثبيت النص النهائي
+                report_placeholder.markdown(full_response)
                 
             except Exception as e:
                 st.error(f"النظام اكتشف الخطأ الحقيقي وهو: {e}")
