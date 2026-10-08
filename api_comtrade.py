@@ -78,92 +78,47 @@ def get_comtrade_products():
 def get_hs_code(product_name):
     return COMTRADE_PRODUCTS.get(product_name, "TOTAL")
 
-def fetch_comtrade_data(countries, products, start_year, end_year, api_key):
-    # باقي أكواد الاتصال بسيرفر الأمم المتحدة الخاصة بك تبقى كما هي
-    if not api_key:
-        st.error("⚠ يرجى إدخال مفتاح الأمم المتحدة.")
-        return pd.DataFrame()
-        
-    reporter_code = COMTRADE_COUNTRIES.get(reporter_name, "818")
-    partner_code = COMTRADE_COUNTRIES.get(partner_name, "0")
-    flow_code = FLOWS.get(flow_name, "X")
+def fetch_comtrade_data(countries, products, start_year, end_year, api_key, flow_code, target_metric):
+    import pandas as pd
+    import requests
+    import streamlit as st
+
+    # 1. تحضير السنوات (من سنة البداية لسنة النهاية)
+    years = ",".join([str(y) for y in range(start_year, end_year + 1)])
     
-    all_years = list(range(start_year, end_year + 1))
-    chunk_size = 5
-    year_chunks = [all_years[i:i + chunk_size] for i in range(0, len(all_years), chunk_size)]
+    # 2. تحضير الدول والسلع
+    country_str = ",".join(countries)
+    product_str = ",".join(products)
     
-    url = "https://comtradeapi.un.org/data/v1/get/C/A/HS"
-    headers = {
-        "Ocp-Apim-Subscription-Key": api_key.strip()
-    }
+    # 3. بناء رابط الاستدعاء وتضمين (كود التدفق: صادرات أو واردات)
+    url = f"https://comtradeapi.un.org/data/v1/get/C/A/HS?reporterCode={country_str}&partnerCode=0&cmdCode={product_str}&period={years}&flowCode={flow_code}"
     
-    all_data = []
-    progress_bar = st.progress(0)
-    status_text = st.empty()
+    headers = {'Ocp-Apim-Subscription-Key': api_key}
     
-    for idx, chunk in enumerate(year_chunks):
-        years_str = ",".join([str(y) for y in chunk])
-        status_text.text(f"جاري سحب بيانات السنوات: {years_str} ...")
-        
-        # تجهيز الطلب الأساسي
-        params = {
-            "reporterCode": reporter_code,
-            "partner2Code": "0",
-            "cmdCode": str(hs_code).strip(),
-            "flowCode": flow_code,
-            "period": years_str,
-            "motCode": "0",
-            "customsCode": "C00"
-        }
-        
-        # 🎯 السر هنا: إذا أراد كل الدول، لا نرسل شرط (partnerCode) نهائياً ليتم سحب العالم كله
-        if partner_code != "all":
-            params["partnerCode"] = partner_code
-            
-        try:
-            response = requests.get(url, headers=headers, params=params, timeout=20)
-            
-            if response.status_code == 200:
-                data = response.json()
-                if "data" in data and len(data["data"]) > 0:
-                    df_chunk = pd.DataFrame(data["data"])
-                    all_data.append(df_chunk)
-            elif response.status_code == 400:
-                # صندوق الاعتراف الأسود لكشف أي خطأ مستقبلي
-                st.error("❌ خادم الأمم المتحدة يرفض الطلب. إليك اعتراف الخادم الدقيق:")
-                st.code(response.text)
-                progress_bar.empty()
-                status_text.empty()
-                return pd.DataFrame()
-            elif response.status_code == 401:
-                st.error("⛔ المفتاح غير صالح.")
-                progress_bar.empty()
-                status_text.empty()
-                return pd.DataFrame()
+    try:
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            if 'data' in data and len(data['data']) > 0:
+                df = pd.DataFrame(data['data'])
                 
-            time.sleep(1.5)
-        except Exception:
-            pass
-            
-        progress_bar.progress((idx + 1) / len(year_chunks))
-        
-    progress_bar.empty()
-    status_text.empty()
-    
-    if all_data:
-        df = pd.concat(all_data, ignore_index=True)
-        if "primaryValue" in df.columns and "partnerDesc" in df.columns:
-            df_clean = df[["period", "partnerDesc", "primaryValue"]].copy()
-            df_clean.rename(columns={"period": "السنة", "primaryValue": "القيمة"}, inplace=True)
-            df_clean["السنة"] = df_clean["السنة"].astype(int)
-            
-            direction = "إلى" if flow_code == "X" else "من"
-            
-            if partner_name == "جميع الدول فردياً (All Partners)":
-                df_clean["المتغير"] = f"{reporter_name.split()[0]} {direction} " + df_clean["partnerDesc"]
+                # 4. تصفية الأعمدة بناءً على "المتغير الاقتصادي" المطلوب
+                columns_to_keep = ['reporterDesc', 'cmdCode', 'cmdDesc', 'period']
+                if target_metric == "القيمة بالدولار (Trade Value)":
+                    columns_to_keep.append('primaryValue')
+                elif target_metric == "الكمية / الوزن الصافي (Net Weight)":
+                    columns_to_keep.append('netWgt')
+                else:
+                    columns_to_keep.extend(['primaryValue', 'netWgt'])
+                    
+                # الاحتفاظ بالأعمدة المتاحة فقط لعدم حدوث أخطاء
+                final_cols = [c for c in columns_to_keep if c in df.columns]
+                return df[final_cols]
             else:
-                df_clean["المتغير"] = f"{reporter_name.split()[0]} {direction} {partner_name.split()[0]}"
-                
-            df_clean = df_clean.sort_values(by=["السنة", "القيمة"], ascending=[True, False]).reset_index(drop=True)
-            return df_clean
-    return pd.DataFrame()
+                return pd.DataFrame()
+        else:
+            st.error(f"خطأ في الاتصال بسيرفر الأمم المتحدة: {response.status_code}")
+            return pd.DataFrame()
+    except Exception as e:
+        st.error(f"خطأ برمجي أثناء المعالجة: {e}")
+        return pd.DataFrame()
