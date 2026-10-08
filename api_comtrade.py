@@ -94,9 +94,7 @@ def fetch_comtrade_data(countries, products, start_year, end_year, api_key, flow
     url = f"https://comtradeapi.un.org/data/v1/get/C/A/HS?reporterCode={country_str}&partnerCode=0&cmdCode={product_str}&period={years}&flowCode={flow_code}"
     
     headers = {'Ocp-Apim-Subscription-Key': api_key}
-    
-    try:
-        response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers)
         if response.status_code == 200:
             data = response.json()
             if 'data' in data and len(data['data']) > 0:
