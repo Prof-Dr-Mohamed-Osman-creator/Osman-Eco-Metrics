@@ -56,29 +56,66 @@ if app_mode == "🏠 الصفحة الرئيسية":
     st.info("👈 يرجى اختيار جناح التحليل من القائمة الجانبية.")
 
 # ==========================================
-# 🕸️ الجناح الأول: رادار الحصاد الآلي
+# 🕸️ الجناح الأول: رادار الحصاد الآلي (النسخة الشاملة المفتوحة)
 # ==========================================
 elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
     st.markdown("<h1 style='color: #E67E22;'>🕸️ رادار الحصاد الآلي للبيانات</h1>", unsafe_allow_html=True)
-    st.write("سيقوم الرادار بجلب البيانات الحية وحفظها مباشرة في **(ذاكرة المنصة)** ليقوم الذكاء الاصطناعي بتحليلها.")
+    st.write("🌍 **وضع الاستكشاف الشامل:** الرادار متصل الآن بآلاف المتغيرات لجميع دول العالم.")
     
-    # 👈 هنا أضفنا قواعد بيانات الأمم المتحدة للقائمة!
     source = st.selectbox("اختر المنظمة الدولية:", [
         "البنك الدولي (World Bank)", 
-        "منظمة الأغذية والزراعة (FAO)",
-        "الأمم المتحدة - خريطة التجارة (TradeMap)",
-        "الأمم المتحدة - كومتريد (UN Comtrade)"
+        "منظمة الأغذية والزراعة (FAO) - قيد التفعيل",
+        "الأمم المتحدة - خريطة التجارة (TradeMap) - قيد التفعيل",
+        "الأمم المتحدة - كومتريد (UN Comtrade) - قيد التفعيل"
     ])
     
-    if st.button("بدء الحصاد 📡"):
-        with st.spinner("جاري الاتصال بالسيرفرات الدولية وسحب البيانات..."):
+    if source == "البنك الدولي (World Bank)":
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # 1. استدعاء جميع دول العالم ديناميكياً
             try:
-                # محاكاة مؤقتة للبيانات لحين تفعيل الدوال الأساسية
-                if source == "البنك الدولي (World Bank)":
-                    df_result = pd.DataFrame({
-                        "السنة": [2021, 2022, 2023],
-                        "الناتج المحلي الإجمالي (مصر)": [404.14, 478.23, 395.93] 
-                    })
+                # نستخدم دالتك الأصلية لجلب الدول
+                countries_dict = fetch_all_countries() 
+                if isinstance(countries_dict, dict):
+                    country_name = st.selectbox("اختر الدولة:", list(countries_dict.keys()))
+                    country_code = countries_dict[country_name]
+                else:
+                    # في حال كانت الدالة ترجع قائمة
+                    country_code = st.selectbox("اختر كود الدولة:", countries_dict)
+            except Exception as e:
+                st.error("جاري إعداد قائمة الدول...")
+                country_code = st.text_input("أو أدخل كود الدولة (مثال: EGY)", value="EGY")
+                
+        with col2:
+            # 2. استدعاء آلاف المؤشرات من ملفك المترجم (wb_indicators_ar.csv)
+            try:
+                df_indicators = pd.read_csv("wb_indicators_ar.csv")
+                # افتراض أن العمود الأول هو الاسم والعمود الثاني هو الكود
+                indicator_name = st.selectbox("ابحث واختر المؤشر (يوجد آلاف المؤشرات):", df_indicators.iloc[:, 0].tolist())
+                indicator_code = df_indicators[df_indicators.iloc[:, 0] == indicator_name].iloc[0, 1]
+            except Exception as e:
+                st.warning("يرجى التأكد من وجود ملف wb_indicators_ar.csv في المستودع.")
+                indicator_code = st.text_input("أو أدخل كود المؤشر يدوياً:", value="NY.GDP.MKTP.CD")
+                
+        if st.button("بدء الحصاد الشامل 📡"):
+            with st.spinner("جاري مسح قواعد البنك الدولي وسحب السلسلة الزمنية..."):
+                try:
+                    # 3. استخدام دالتك القوية لجلب البيانات التاريخية
+                    df_result = fetch_worldbank_data(country_code, indicator_code)
+                    
+                    if df_result is not None and not df_result.empty:
+                        st.session_state['smart_memory'] = df_result
+                        st.success("✅ تمت العملية بنجاح! تم التقاط السلسلة الزمنية وحفظها في ذاكرة المنصة.")
+                        st.dataframe(df_result)
+                        st.info("👈 الأرقام الحقيقية في الذاكرة الآن.. اذهب إلى المساعد الذكي (Gemini) ليصيغ تقريرك!")
+                    else:
+                        st.warning("عفواً، لا توجد بيانات مسجلة لهذا المؤشر في هذه الدولة.")
+                except Exception as e:
+                    st.error(f"حدث خطأ أثناء جلب البيانات: {e}")
+    else:
+        # باقي المنظمات مؤقتاً لحين ربط دوالها
+        st.info("جاري تجهيز دوال الحصاد الشامل لهذه المنظمة (FAO / TradeMap / Comtrade) في ملفاتها البرمجية المخصصة.")
                 elif source == "منظمة الأغذية والزراعة (FAO)":
                     df_result = pd.DataFrame({
                         "المحصول": ["قمح", "أرز", "ذرة"],
