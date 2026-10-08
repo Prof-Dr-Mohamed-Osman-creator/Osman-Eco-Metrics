@@ -141,53 +141,61 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
         
     elif source == "الأمم المتحدة - كومتريد (UN Comtrade)":
         st.markdown("<h3 style='color: #2980B9;'>🇺🇳 رادار الأمم المتحدة (سلة التنافسية التصديرية الشاملة)</h3>", unsafe_allow_html=True)
+        st.write("🌍 تم ربط الرادار بالأدلة الشاملة للأمم المتحدة (آلاف السلع والدول).")
         
+        # --- الصف الأول: سلة الدول والسلع ---
         col1, col2 = st.columns(2)
-        
         with col1:
-            # 1. قائمة الدول الشاملة للسهولة (كما في البناء الأولي)
-            comtrade_countries = {
-                "مصر (Egypt)": "818", 
-                "السعودية (Saudi Arabia)": "682", 
-                "الإمارات (UAE)": "784", 
-                "المغرب (Morocco)": "504", 
-                "إسبانيا (Spain)": "724", 
-                "تركيا (Turkey)": "792", 
-                "أمريكا (USA)": "842", 
-                "الصين (China)": "156", 
-                "روسيا (Russia)": "643",
-                "إيطاليا (Italy)": "380",
-                "العالم (World)": "0"
-            }
-            selected_countries_names = st.multiselect(
-                "🛒 اختر الدول المصدرة:", 
-                options=list(comtrade_countries.keys()), 
-                default=["مصر (Egypt)"],
-                max_selections=10
-            )
-            selected_countries = [comtrade_countries[name] for name in selected_countries_names]
+            try:
+                df_un_countries = pd.read_csv("comtrade_countries.csv")
+                df_un_countries['Display'] = df_un_countries['Country_Name'].astype(str) + " (" + df_un_countries['Country_Code'].astype(str) + ")"
+                un_countries_dict = dict(zip(df_un_countries['Display'], df_un_countries['Country_Code'].astype(str)))
+                
+                selected_countries_names = st.multiselect(
+                    "🛒 اختر الدول (الشركاء/المنافسين):", 
+                    options=list(un_countries_dict.keys()), 
+                    default=["Egypt (818)"] if "Egypt (818)" in un_countries_dict else [],
+                    max_selections=10
+                )
+                selected_countries = [un_countries_dict[name] for name in selected_countries_names]
+            except:
+                st.error("لم يتم العثور على ملف comtrade_countries.csv.")
+                selected_countries = []
 
         with col2:
-            # 2. قائمة المحاصيل بالاسم والكود (لإلغاء الإدخال اليدوي تماماً)
-            comtrade_products = {
-                "بطاطس طازجة أو مبردة (070190)": "070190",
-                "بنجر السكر (121291)": "121291",
-                "فراولة مجمدة (081110)": "081110",
-                "فراولة طازجة (081010)": "081010",
-                "فاصوليا خضراء (070820)": "070820",
-                "بصل وثوم طازج (070310)": "070310",
-                "طماطم طازجة أو مبردة (070200)": "070200",
-                "قمح (100199)": "100199",
-                "برتقال (080510)": "080510",
-                "إجمالي الصادرات (TOTAL)": "TOTAL"
-            }
-            selected_commodities_names = st.multiselect(
-                "🛒 اختر السلع (الاسم والكود):", 
-                options=list(comtrade_products.keys()), 
-                default=["بطاطس طازجة أو مبردة (070190)"],
-                max_selections=10
+            try:
+                df_un_products = pd.read_csv("comtrade_products.csv")
+                df_un_products['Display'] = df_un_products['Product_Name'].astype(str) + " (" + df_un_products['HS_Code'].astype(str) + ")"
+                un_products_dict = dict(zip(df_un_products['Display'], df_un_products['HS_Code'].astype(str)))
+                
+                selected_commodities_names = st.multiselect(
+                    "🛒 ابحث واختر السلع (HS Codes):", 
+                    options=list(un_products_dict.keys()), 
+                    max_selections=10
+                )
+                selected_commodities = [un_products_dict[name] for name in selected_commodities_names]
+            except:
+                st.error("لم يتم العثور على ملف comtrade_products.csv.")
+                selected_commodities = []
+                
+        # --- الصف الثاني: التدفق التجاري والمتغيرات (الإضافة الجديدة) ---
+        st.markdown("---")
+        col3, col4 = st.columns(2)
+        with col3:
+            trade_flow_name = st.selectbox(
+                "🔄 التدفق التجاري (Trade Flow):", 
+                ["صادرات (Exports)", "واردات (Imports)", "إعادة تصدير (Re-Exports)"]
             )
-            selected_commodities = [comtrade_products[name] for name in selected_commodities_names]
+            # تحويل الاختيار إلى كود رقمي يفهمه سيرفر الكومتريد (2=صادرات، 1=واردات، 3=إعادة تصدير)
+            if "صادرات" in trade_flow_name: flow_code = "2"
+            elif "واردات" in trade_flow_name: flow_code = "1"
+            else: flow_code = "3"
+
+        with col4:
+            target_metric = st.selectbox(
+                "📏 المتغير الاقتصادي (Metric):", 
+                ["القيمة بالدولار (Trade Value)", "الكمية / الوزن الصافي (Net Weight)", "كلاهما (Value & Weight)"]
+            )
             
         st.markdown("---")
         start_year_un, end_year_un = st.slider(
@@ -202,30 +210,30 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
             if len(selected_countries) > 0 and len(selected_commodities) > 0:
                 with st.spinner("جاري الاتصال بقواعد بيانات UN Comtrade العالمية..."):
                     try:
-                        # 3. جلب المفتاح السري بأمان
                         try:
                             comtrade_key = st.secrets["COMTRADE_API_KEY"]
                         except:
-                            comtrade_key = "" # في حال لم تقم بإضافته بعد في إعدادات المنصة
+                            comtrade_key = "" 
                             
-                        # 4. استدعاء الدالة مع تمرير كافة المتغيرات الناقصة (حسب رسالة الخطأ)
+                        # استدعاء الدالة مع تمرير المتغيرات الجديدة (التدفق والمتغير)
                         df_un_result = fetch_comtrade_data(
                             selected_countries, 
                             selected_commodities, 
                             start_year_un, 
                             end_year_un, 
-                            comtrade_key
+                            comtrade_key,
+                            flow_code,       # 👈 تم تمرير التدفق (صادرات/واردات)
+                            target_metric    # 👈 تم تمرير نوع المتغير
                         )
                         
                         if df_un_result is not None and not df_un_result.empty:
                             st.session_state['smart_memory'] = df_un_result
-                            st.success(f"✅ تمت العملية بنجاح! تم سحب بيانات السلة.")
+                            st.success("✅ تمت العملية بنجاح! تم سحب بيانات السلة.")
                             st.dataframe(df_un_result)
-                            st.info("👈 بياناتك في الذاكرة الآن.. اذهب للمساعد الذكي لعمل تقرير الاختراق السوقي!")
                         else:
                             st.warning("الخادم لم يُرجع أي بيانات لهذه السلة في هذه السنوات.")
                     except TypeError as e:
-                        st.error(f"عطل في ترتيب المتغيرات: {e}. (يرجى مراجعة ملف api_comtrade.py الخاص بك للتأكد من ترتيب استلام المتغيرات داخل الدالة).")
+                        st.error(f"يرجى تحديث دالة fetch_comtrade_data في ملف api_comtrade.py لتستقبل المتغيرات الجديدة. الخطأ: {e}")
                     except Exception as e:
                         st.error(f"حدث خطأ أثناء جلب البيانات: {e}")
             else:
