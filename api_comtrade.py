@@ -78,7 +78,8 @@ def get_comtrade_products():
 def get_hs_code(product_name):
     return COMTRADE_PRODUCTS.get(product_name, "TOTAL")
 
-def fetch_comtrade_data(reporter_name, partner_name, flow_name, hs_code, start_year, end_year, api_key):
+def fetch_comtrade_data(countries, products, start_year, end_year, api_key):
+    # باقي أكواد الاتصال بسيرفر الأمم المتحدة الخاصة بك تبقى كما هي
     if not api_key:
         st.error("⚠ يرجى إدخال مفتاح الأمم المتحدة.")
         return pd.DataFrame()
