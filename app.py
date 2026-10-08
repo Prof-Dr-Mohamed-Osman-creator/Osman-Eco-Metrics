@@ -214,9 +214,9 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                             comtrade_key = st.secrets["COMTRADE_API_KEY"]
                         except:
                            if comtrade_key == "":
-        st.error("المنصة لا ترى المفتاح! تأكد من كتابة COMTRADE_API_KEY في الـ Secrets بشكل صحيح.")
+            st.error("المنصة لا ترى المفتاح! تأكد من كتابة COMTRADE_API_KEY في الـ Secrets بشكل صحيح.")
     else:
-        st.success("المنصة نجحت في سحب المفتاح السري وتستعد لإرساله!")
+            st.success("المنصة نجحت في سحب المفتاح السري وتستعد لإرساله!")
                             
                         # استدعاء الدالة مع تمرير المتغيرات الجديدة (التدفق والمتغير)
                         df_un_result = fetch_comtrade_data(
