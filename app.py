@@ -125,7 +125,7 @@ elif app_mode == "✨ المساعد الذكي وصياغة التقارير (G
                 import google.generativeai as genai
                 api_key = st.secrets["GEMINI_API_KEY"]
                 genai.configure(api_key=api_key)
-                model = genai.GenerativeModel('gemini-1.5-pro-latest')
+                model = genai.GenerativeModel('gemini-1.5-flash')
                 
                 # تحويل الجدول إلى نص ليفهمه الذكاء الاصطناعي
                 data_string = st.session_state['smart_memory'].to_string()
