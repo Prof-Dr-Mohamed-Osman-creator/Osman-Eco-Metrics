@@ -178,7 +178,7 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                 st.error("لم يتم العثور على ملف comtrade_products.csv.")
                 selected_commodities = []
                 
-        # --- الصف الثاني: التدفق التجاري والمتغيرات (الإضافة الجديدة) ---
+        # --- الصف الثاني: التدفق التجاري والمتغيرات ---
         st.markdown("---")
         col3, col4 = st.columns(2)
         with col3:
@@ -186,7 +186,6 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                 "🔄 التدفق التجاري (Trade Flow):", 
                 ["صادرات (Exports)", "واردات (Imports)", "إعادة تصدير (Re-Exports)"]
             )
-            # تحويل الاختيار إلى كود رقمي يفهمه سيرفر الكومتريد (2=صادرات، 1=واردات، 3=إعادة تصدير)
             if "صادرات" in trade_flow_name: flow_code = "2"
             elif "واردات" in trade_flow_name: flow_code = "1"
             else: flow_code = "3"
@@ -213,35 +212,38 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                         try:
                             comtrade_key = st.secrets["COMTRADE_API_KEY"]
                         except:
-                           if comtrade_key == "":
-            st.error("المنصة لا ترى المفتاح! تأكد من كتابة COMTRADE_API_KEY في الـ Secrets بشكل صحيح.")
-    else:
-            st.success("المنصة نجحت في سحب المفتاح السري وتستعد لإرساله!")
-                            
-                        # استدعاء الدالة مع تمرير المتغيرات الجديدة (التدفق والمتغير)
-                        df_un_result = fetch_comtrade_data(
-                            selected_countries, 
-                            selected_commodities, 
-                            start_year_un, 
-                            end_year_un, 
-                            comtrade_key,
-                            flow_code,       # 👈 تم تمرير التدفق (صادرات/واردات)
-                            target_metric    # 👈 تم تمرير نوع المتغير
-                        )
+                            comtrade_key = "" 
                         
-                        if df_un_result is not None and not df_un_result.empty:
-                            st.session_state['smart_memory'] = df_un_result
-                            st.success("✅ تمت العملية بنجاح! تم سحب بيانات السلة.")
-                            st.dataframe(df_un_result)
+                        # --- رادار فحص المفتاح السري المنسق برمجياً ---
+                        if comtrade_key == "":
+                            st.error("المنصة لا ترى المفتاح! تأكد من كتابة COMTRADE_API_KEY في الـ Secrets في إعدادات التطبيق.")
                         else:
-                            st.warning("الخادم لم يُرجع أي بيانات لهذه السلة في هذه السنوات.")
+                            st.success("✅ المنصة نجحت في قراءة المفتاح السري من الخزنة وتستعد للاتصال!")
+                            
+                            # استدعاء دالة الحصاد
+                            df_un_result = fetch_comtrade_data(
+                                selected_countries, 
+                                selected_commodities, 
+                                start_year_un, 
+                                end_year_un, 
+                                comtrade_key,
+                                flow_code,       
+                                target_metric    
+                            )
+                            
+                            if df_un_result is not None and not df_un_result.empty:
+                                st.session_state['smart_memory'] = df_un_result
+                                st.success("🎉 تمت العملية بنجاح! تم سحب بيانات السلة من خوادم الأمم المتحدة.")
+                                st.dataframe(df_un_result)
+                            else:
+                                st.warning("الخادم لم يُرجع أي بيانات لهذه السلة في هذه السنوات (قد يكون الخطأ 401 أو لا توجد داتا).")
+                    
                     except TypeError as e:
                         st.error(f"يرجى تحديث دالة fetch_comtrade_data في ملف api_comtrade.py لتستقبل المتغيرات الجديدة. الخطأ: {e}")
                     except Exception as e:
                         st.error(f"حدث خطأ أثناء جلب البيانات: {e}")
             else:
                 st.warning("يرجى اختيار دولة واحدة وسلعة واحدة على الأقل.")
-
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
