@@ -95,7 +95,7 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                 
         with col2:
             try:
-                # قراءة ملف المؤشرات مباشرة كما اتفقنا
+                # قراءة ملف المؤشرات
                 df_indicators = pd.read_csv("wb_indicators_ar.csv")
                 indicator_name = st.selectbox("ابحث واختر المؤشر (يوجد آلاف المؤشرات):", df_indicators.iloc[:, 0].tolist())
                 indicator_code = df_indicators[df_indicators.iloc[:, 0] == indicator_name].iloc[0, 1]
@@ -103,17 +103,27 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                 st.warning(f"يرجى التأكد من مسار ملف wb_indicators_ar.csv. الخطأ: {e}")
                 indicator_code = st.text_input("أو أدخل كود المؤشر يدوياً:", value="NY.GDP.MKTP.CD")
                 
+        # 👈 الإضافة الجديدة: شريط تحديد السلسلة الزمنية
+        st.markdown("---")
+        start_year, end_year = st.slider(
+            "🗓️ حدد فترة السلسلة الزمنية:", 
+            min_value=1960, 
+            max_value=2026, 
+            value=(2000, 2023) # القيمة الافتراضية عند فتح المنصة
+        )
+                
         if st.button("بدء الحصاد الشامل 📡"):
             with st.spinner("جاري مسح قواعد البنك الدولي وسحب السلسلة الزمنية..."):
                 try:
-                    df_result = fetch_worldbank_data(country_code, indicator_code)
+                    # 👈 تحديث الاستدعاء ليأخذ سنوات البداية والنهاية
+                    df_result = fetch_worldbank_data(country_code, indicator_code, start_year, end_year)
                     if df_result is not None and not df_result.empty:
                         st.session_state['smart_memory'] = df_result
                         st.success("✅ تمت العملية بنجاح! تم التقاط السلسلة الزمنية وحفظها في ذاكرة المنصة.")
                         st.dataframe(df_result)
                         st.info("👈 الأرقام الحقيقية في الذاكرة الآن.. اذهب إلى المساعد الذكي (Gemini) ليصيغ تقريرك!")
                     else:
-                        st.warning("عفواً، لا توجد بيانات مسجلة لهذا المؤشر في هذه الدولة.")
+                        st.warning("عفواً، لا توجد بيانات مسجلة لهذا المؤشر في هذه الدولة للفترة المحددة.")
                 except Exception as e:
                     st.error(f"حدث خطأ أثناء جلب البيانات: {e}")
                     
