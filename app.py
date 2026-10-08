@@ -186,10 +186,9 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
                 "🔄 التدفق التجاري (Trade Flow):", 
                 ["صادرات (Exports)", "واردات (Imports)", "إعادة تصدير (Re-Exports)"]
             )
-            if "صادرات" in trade_flow_name: flow_code = "2"
-            elif "واردات" in trade_flow_name: flow_code = "1"
-            else: flow_code = "3"
-
+            if "صادرات" in trade_flow_name: flow_code = "X"
+            elif "واردات" in trade_flow_name: flow_code = "M"
+            else: flow_code = "RX"
         with col4:
             target_metric = st.selectbox(
                 "📏 المتغير الاقتصادي (Metric):", 
