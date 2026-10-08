@@ -141,53 +141,58 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
         
     elif source == "الأمم المتحدة - كومتريد (UN Comtrade)":
         st.markdown("<h3 style='color: #2980B9;'>🇺🇳 رادار الأمم المتحدة (سلة التنافسية التصديرية الشاملة)</h3>", unsafe_allow_html=True)
-        st.write("تم تفعيل الاتصال المباشر بقواعد بيانات UN Comtrade لجلب كافة المتغيرات الدولية والأكواد السلعية (HS).")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            try:
-                # 1. استدعاء كافة دول العالم ديناميكياً من دالتك الأصلية
-                un_countries_dict = get_comtrade_countries()
-                if isinstance(un_countries_dict, dict):
-                    selected_countries_names = st.multiselect(
-                        "🛒 سلة الدول المنافسة (اختر 10 كحد أقصى):", 
-                        options=list(un_countries_dict.keys()), 
-                        max_selections=10
-                    )
-                    # تحويل أسماء الدول إلى أكواد رقمية يفهمها سيرفر الأمم المتحدة
-                    selected_countries = [un_countries_dict[name] for name in selected_countries_names]
-                else:
-                    selected_countries = st.multiselect("اختر الدول:", un_countries_dict, max_selections=10)
-            except Exception as e:
-                st.warning("جاري ربط قائمة الدول الشاملة بدالة الكومتريد...")
-                selected_countries_str = st.text_input("أو أدخل أكواد الدول يدوياً مفصولة بفاصلة (مثال لمصر وإسبانيا: 818,724):")
-                selected_countries = [x.strip() for x in selected_countries_str.split(",")] if selected_countries_str else []
+            # 1. قائمة الدول الشاملة للسهولة (كما في البناء الأولي)
+            comtrade_countries = {
+                "مصر (Egypt)": "818", 
+                "السعودية (Saudi Arabia)": "682", 
+                "الإمارات (UAE)": "784", 
+                "المغرب (Morocco)": "504", 
+                "إسبانيا (Spain)": "724", 
+                "تركيا (Turkey)": "792", 
+                "أمريكا (USA)": "842", 
+                "الصين (China)": "156", 
+                "روسيا (Russia)": "643",
+                "إيطاليا (Italy)": "380",
+                "العالم (World)": "0"
+            }
+            selected_countries_names = st.multiselect(
+                "🛒 اختر الدول المصدرة:", 
+                options=list(comtrade_countries.keys()), 
+                default=["مصر (Egypt)"],
+                max_selections=10
+            )
+            selected_countries = [comtrade_countries[name] for name in selected_countries_names]
 
         with col2:
-            try:
-                # 2. استدعاء كافة أكواد السلع (HS Codes) ديناميكياً
-                hs_codes_dict = get_comtrade_products() 
-                if isinstance(hs_codes_dict, dict):
-                    selected_commodities_names = st.multiselect(
-                        "🛒 سلة السلع / HS Codes (اختر 10 كحد أقصى):", 
-                        options=list(hs_codes_dict.keys()), 
-                        max_selections=10
-                    )
-                    selected_commodities = [hs_codes_dict[name] for name in selected_commodities_names]
-                else:
-                    selected_commodities_str = st.text_input("أدخل أكواد السلع HS Codes مفصولة بفاصلة (مثال للبطاطس وبنجر السكر: 070190, 121291):")
-                    selected_commodities = [x.strip() for x in selected_commodities_str.split(",")] if selected_commodities_str else []
-            except Exception as e:
-                st.warning("جاري ربط قائمة السلع الشاملة...")
-                selected_commodities_str = st.text_input("أدخل أكواد السلع HS Codes مفصولة بفاصلة (مثال: 070190, 121291):")
-                selected_commodities = [x.strip() for x in selected_commodities_str.split(",")] if selected_commodities_str else []
+            # 2. قائمة المحاصيل بالاسم والكود (لإلغاء الإدخال اليدوي تماماً)
+            comtrade_products = {
+                "بطاطس طازجة أو مبردة (070190)": "070190",
+                "بنجر السكر (121291)": "121291",
+                "فراولة مجمدة (081110)": "081110",
+                "فراولة طازجة (081010)": "081010",
+                "فاصوليا خضراء (070820)": "070820",
+                "بصل وثوم طازج (070310)": "070310",
+                "طماطم طازجة أو مبردة (070200)": "070200",
+                "قمح (100199)": "100199",
+                "برتقال (080510)": "080510",
+                "إجمالي الصادرات (TOTAL)": "TOTAL"
+            }
+            selected_commodities_names = st.multiselect(
+                "🛒 اختر السلع (الاسم والكود):", 
+                options=list(comtrade_products.keys()), 
+                default=["بطاطس طازجة أو مبردة (070190)"],
+                max_selections=10
+            )
+            selected_commodities = [comtrade_products[name] for name in selected_commodities_names]
             
         st.markdown("---")
-        # 3. مؤشر السنوات الخاص بالأمم المتحدة
         start_year_un, end_year_un = st.slider(
             "🗓️ حدد فترة السلسلة الزمنية للمقارنة:", 
-            min_value=2000, 
+            min_value=2010, 
             max_value=2026, 
             value=(2018, 2023),
             key="un_slider"
@@ -195,22 +200,36 @@ elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
         
         if st.button("بدء حصاد سلة الأمم المتحدة الشاملة 📡"):
             if len(selected_countries) > 0 and len(selected_commodities) > 0:
-                with st.spinner("جاري مسح خوادم UN Comtrade العالمية وسحب بيانات السلة..."):
+                with st.spinner("جاري الاتصال بقواعد بيانات UN Comtrade العالمية..."):
                     try:
-                        # 4. استدعاء دالة الحصاد الأصلية لجلب البيانات الحقيقية
-                        df_un_result = fetch_comtrade_data(selected_countries, selected_commodities, start_year_un, end_year_un)
+                        # 3. جلب المفتاح السري بأمان
+                        try:
+                            comtrade_key = st.secrets["COMTRADE_API_KEY"]
+                        except:
+                            comtrade_key = "" # في حال لم تقم بإضافته بعد في إعدادات المنصة
+                            
+                        # 4. استدعاء الدالة مع تمرير كافة المتغيرات الناقصة (حسب رسالة الخطأ)
+                        df_un_result = fetch_comtrade_data(
+                            selected_countries, 
+                            selected_commodities, 
+                            start_year_un, 
+                            end_year_un, 
+                            comtrade_key
+                        )
                         
                         if df_un_result is not None and not df_un_result.empty:
                             st.session_state['smart_memory'] = df_un_result
-                            st.success(f"✅ تمت العملية بنجاح! تم التقاط بيانات {len(selected_countries)} دول و {len(selected_commodities)} سلع.")
+                            st.success(f"✅ تمت العملية بنجاح! تم سحب بيانات السلة.")
                             st.dataframe(df_un_result)
-                            st.info("👈 الأرقام الحقيقية في الذاكرة الآن.. اذهب إلى المساعد الذكي ليصيغ تقرير التنافسية!")
+                            st.info("👈 بياناتك في الذاكرة الآن.. اذهب للمساعد الذكي لعمل تقرير الاختراق السوقي!")
                         else:
-                            st.warning("الخادم لم يُرجع أي بيانات لهذه الدول/السلع في الفترة المحددة.")
+                            st.warning("الخادم لم يُرجع أي بيانات لهذه السلة في هذه السنوات.")
+                    except TypeError as e:
+                        st.error(f"عطل في ترتيب المتغيرات: {e}. (يرجى مراجعة ملف api_comtrade.py الخاص بك للتأكد من ترتيب استلام المتغيرات داخل الدالة).")
                     except Exception as e:
-                        st.error(f"حدث خطأ أثناء جلب بيانات الأمم المتحدة: {e}")
+                        st.error(f"حدث خطأ أثناء جلب البيانات: {e}")
             else:
-                st.warning("يرجى اختيار دولة واحدة وسلعة واحدة على الأقل لملء السلة.")
+                st.warning("يرجى اختيار دولة واحدة وسلعة واحدة على الأقل.")
 
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
