@@ -78,11 +78,11 @@ def get_comtrade_products():
 def get_hs_code(product_name):
     return COMTRADE_PRODUCTS.get(product_name, "TOTAL")
 
-def fetch_comtrade_data(countries, products, start_year, end_year, api_key, flow_code, target_metric):
-    import pandas as pd
-    import requests
-    import streamlit as st
+import pandas as pd
+import requests
+import streamlit as st
 
+def fetch_comtrade_data(countries, products, start_year, end_year, api_key, flow_code, target_metric):
     # 1. تحضير السنوات (من سنة البداية لسنة النهاية)
     years = ",".join([str(y) for y in range(start_year, end_year + 1)])
     
@@ -94,7 +94,9 @@ def fetch_comtrade_data(countries, products, start_year, end_year, api_key, flow
     url = f"https://comtradeapi.un.org/data/v1/get/C/A/HS?reporterCode={country_str}&partnerCode=0&cmdCode={product_str}&period={years}&flowCode={flow_code}"
     
     headers = {'Ocp-Apim-Subscription-Key': api_key}
-    response = requests.get(url, headers=headers)
+    
+    try:
+        response = requests.get(url, headers=headers)
         if response.status_code == 200:
             data = response.json()
             if 'data' in data and len(data['data']) > 0:
