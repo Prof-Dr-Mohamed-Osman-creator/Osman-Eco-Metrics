@@ -15,4 +15,7 @@ python-docx
 pdfplumber
 PyPDF2
 Pillow
-
+pulp
+ortools
+arch
+pmdarima
