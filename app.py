@@ -388,63 +388,63 @@ elif page == t["harvest"]:
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
 elif page == t["ai_assistant"]:
-            # إعداد نصوص اللغتين لمكتب المستشار
-            if selected_lang == "English":
-                ai_title = "✨ Gemini AI Assistant & Report Generation"
-                ai_desc = "Welcome to the AI Office! Provide your secure API Key to let the algorithms read the 'Smart Memory' and draft professional eco-dynamic reports."
-                key_label = "🔑 Safe Vault: Enter Gemini API Key (Stored securely during session):"
-                context_label = "📝 What should the report focus on? (e.g., Analyze the economic growth trends...)"
-                btn_gen = "Generate Analytical Report 🧠"
-                empty_msg = "👈 The table is empty! Please fetch data via the Harvest Wing first."
-                success_msg = "✅ Data is successfully loaded into the AI context!"
+    # إعداد نصوص اللغتين لمكتب المستشار
+    if selected_lang == "English":
+        ai_title = "✨ Gemini AI Assistant & Report Generation"
+        ai_desc = "Welcome to the AI Office! Provide your secure API Key to let the algorithms read the 'Smart Memory' and draft professional eco-dynamic reports."
+        key_label = "🔑 Safe Vault: Enter Gemini API Key (Stored securely during session):"
+        context_label = "📝 What should the report focus on? (e.g., Analyze the economic growth trends...)"
+        btn_gen = "Generate Analytical Report 🧠"
+        empty_msg = "👈 The table is empty! Please fetch data via the Harvest Wing first."
+        success_msg = "✅ Data is successfully loaded into the AI context!"
+    else:
+        ai_title = "✨ المساعد الذكي وصياغة التقارير (Gemini AI)"
+        ai_desc = "مرحباً بك في مكتب المستشار! ضع مفتاحك في 'الخزينة' لتمكين النماذج اللغوية من قراءة الذاكرة الذكية وصياغة تقارير تحليلية دقيقة."
+        key_label = "🔑 الخزينة الآمنة: أدخل مفتاح Gemini API (مُشفر ويحذف بانتهاء الجلسة):"
+        context_label = "📝 ما هو التركيز الأساسي للتقرير؟ (مثال: قم بتحليل دلالات التشتت والنمو الاقتصادي لهذه البيانات...)"
+        btn_gen = "توليد التقرير التحليلي 🧠"
+        empty_msg = "👈 المائدة فارغة! يرجى جلب البيانات أولاً من جناح الحصاد الآلي."
+        success_msg = "✅ البيانات مستقرة بنجاح في عقل الذكاء الاصطناعي!"
+
+    # واجهة المكتب
+    st.markdown(f"<h2 style='color: #8E44AD;'>{ai_title}</h2>", unsafe_allow_html=True)
+    st.write(ai_desc)
+    st.markdown("---")
+
+    # 1. الخزينة 
+    api_key = st.text_input(key_label, type="password")
+
+    # 2. التحقق من الذاكرة
+    if 'smart_memory' not in st.session_state or not isinstance(st.session_state['smart_memory'], pd.DataFrame) or st.session_state['smart_memory'].empty:
+        st.info(empty_msg)
+    else:
+        df = st.session_state['smart_memory']
+        st.success(success_msg)
+        
+        with st.expander("👀 إلقاء نظرة على البيانات المُرسلة للنموذج / View Data Context"):
+            st.dataframe(df.head(), use_container_width=True)
+            
+        report_focus = st.text_area(context_label, height=100)
+        
+        if st.button(btn_gen):
+            if not api_key:
+                st.error("⚠️ يجب وضع المفتاح (API Key) في الخزينة أولاً!" if selected_lang == "العربية" else "⚠️ API Key is required!")
+            elif not report_focus:
+                st.warning("⚠️ يرجى إعطاء توجيه للمستشار حول موضوع التقرير." if selected_lang == "العربية" else "⚠️ Please provide report instructions.")
             else:
-                ai_title = "✨ المساعد الذكي وصياغة التقارير (Gemini AI)"
-                ai_desc = "مرحباً بك في مكتب المستشار! ضع مفتاحك في 'الخزينة' لتمكين النماذج اللغوية من قراءة الذاكرة الذكية وصياغة تقارير تحليلية دقيقة."
-                key_label = "🔑 الخزينة الآمنة: أدخل مفتاح Gemini API (مُشفر ويحذف بانتهاء الجلسة):"
-                context_label = "📝 ما هو التركيز الأساسي للتقرير؟ (مثال: قم بتحليل دلالات التشتت والنمو الاقتصادي لهذه البيانات...)"
-                btn_gen = "توليد التقرير التحليلي 🧠"
-                empty_msg = "👈 المائدة فارغة! يرجى جلب البيانات أولاً من جناح الحصاد الآلي."
-                success_msg = "✅ البيانات مستقرة بنجاح في عقل الذكاء الاصطناعي!"
-
-            # واجهة المكتب
-            st.markdown(f"<h2 style='color: #8E44AD;'>{ai_title}</h2>", unsafe_allow_html=True)
-            st.write(ai_desc)
-            st.markdown("---")
-
-            # 1. الخزينة 
-            api_key = st.text_input(key_label, type="password")
-
-            # 2. التحقق من الذاكرة
-            if 'smart_memory' not in st.session_state or not isinstance(st.session_state['smart_memory'], pd.DataFrame) or st.session_state['smart_memory'].empty:
-                st.info(empty_msg)
-            else:
-                df = st.session_state['smart_memory']
-                st.success(success_msg)
-                
-                with st.expander("👀 إلقاء نظرة على البيانات المُرسلة للنموذج / View Data Context"):
-                    st.dataframe(df.head(), use_container_width=True)
-                    
-                report_focus = st.text_area(context_label, height=100)
-                
-                if st.button(btn_gen):
-                    if not api_key:
-                        st.error("⚠️ يجب وضع المفتاح (API Key) في الخزينة أولاً!" if selected_lang == "العربية" else "⚠️ API Key is required!")
-                    elif not report_focus:
-                        st.warning("⚠️ يرجى إعطاء توجيه للمستشار حول موضوع التقرير." if selected_lang == "العربية" else "⚠️ Please provide report instructions.")
-                    else:
-                        with st.spinner("الخوارزميات تعتصر البيانات وتصيغ التقرير..." if selected_lang == "العربية" else "Generating report..."):
-                            try:
-                                import google.generativeai as genai
-                                genai.configure(api_key=api_key)
-                                model = genai.GenerativeModel('gemini-1.5-pro')
-                                data_summary = df.describe().to_string()
-                                prompt = f"أنت مستشار إحصائي واقتصادي... \n{report_focus}\n{data_summary}\nاكتب التقرير بلغة: {selected_lang}."
-                                response = model.generate_content(prompt)
-                                st.markdown("---")
-                                st.markdown(f"<h3 style='color: #2E86C1;'>📄 التقرير النهائي / Final Report</h3>", unsafe_allow_html=True)
-                                st.write(response.text)
-                            except Exception as e:
-                                st.error(f"❌ حدث خطأ في الاتصال بالخزينة أو النموذج: {e}")
+                with st.spinner("الخوارزميات تعتصر البيانات وتصيغ التقرير..." if selected_lang == "العربية" else "Generating report..."):
+                    try:
+                        import google.generativeai as genai
+                        genai.configure(api_key=api_key)
+                        model = genai.GenerativeModel('gemini-1.5-pro')
+                        data_summary = df.describe().to_string()
+                        prompt = f"أنت مستشار إحصائي واقتصادي في المدرسة الإيكو-ديناميكية.\nطلب الباحث: {report_focus}\nملخص البيانات:\n{data_summary}\nاكتب التقرير بلغة: {selected_lang}."
+                        response = model.generate_content(prompt)
+                        st.markdown("---")
+                        st.markdown(f"<h3 style='color: #2E86C1;'>📄 التقرير النهائي / Final Report</h3>", unsafe_allow_html=True)
+                        st.write(response.text)
+                    except Exception as e:
+                        st.error(f"❌ حدث خطأ في الاتصال بالخزينة أو النموذج: {e}")
 
 # ==========================================
 # 5. التوجيه وفتح الأجنحة (Routing)الاحصاء الوصفي
