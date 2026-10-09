@@ -362,7 +362,7 @@ elif page == t["harvest"]:
         st.warning("هذا الزر يعمل بنفس الآلية السابقة.. (سيتم برمجته لاحقاً)")
 
 # ==========================================
-# 5. التوجيه وفتح الأجنحة (Routing)
+# 5. التوجيه وفتح الأجنحة (Routing)الاحصاء الوصفي
 # ==========================================
 
 if page == t["home"]:
@@ -505,7 +505,74 @@ elif page == t["desc_stats"]:
                         st.pyplot(fig)
         else:
             st.warning(no_num_msg)
+# ==========================================
+        # 🎲 الطبق الجانبي: الجدول المزدوج واختبار كاي (للمتغيرات الوصفية)
+        # ==========================================
+        st.markdown("---")
+        
+        # نصوص اللغتين لاختبار كاي
+        if selected_lang == "English":
+            chi_title = "🎲 Cross-Tabulation & Chi-Square Test (Categorical Variables)"
+            chi_desc = "Select two categorical variables to generate a cross-tab and perform a Chi-Square test of independence."
+            var1_label = "Select First Variable (Rows)"
+            var2_label = "Select Second Variable (Columns)"
+            chi_btn = "Run Chi-Square Test"
+            chi_no_cat = "Not enough categorical variables (at least 2 required) in the dataset to perform Chi-Square."
+            res_crosstab = "Cross-Tabulation Table:"
+            res_stat = "Chi-Square Statistic"
+            res_pval = "P-Value"
+            res_dof = "Degrees of Freedom"
+            res_sig = "Result: There is a significant relationship between the variables (Reject H0) ❌"
+            res_not_sig = "Result: No significant relationship between the variables (Fail to reject H0) ✅"
+        else:
+            chi_title = "🎲 الجدول المزدوج واختبار كاي تربيع (للمتغيرات الوصفية)"
+            chi_desc = "اختر متغيرين وصفيين لإنشاء جدول تقاطع (Cross-Tab) وإجراء اختبار كاي تربيع للاستقلالية."
+            var1_label = "اختر المتغير الأول (الصفوف)"
+            var2_label = "اختر المتغير الثاني (الأعمدة)"
+            chi_btn = "إجراء اختبار كاي تربيع"
+            chi_no_cat = "لا يوجد عدد كافٍ من المتغيرات الوصفية (نحتاج متغيرين على الأقل) لإجراء الاختبار."
+            res_crosstab = "جدول التكرار المزدوج (Cross-Tab):"
+            res_stat = "قيمة كاي تربيع"
+            res_pval = "القيمة الاحتمالية (P-Value)"
+            res_dof = "درجات الحرية"
+            res_sig = "النتيجة: توجد علاقة معنوية بين المتغيرين (نرفض فرض العدم) ❌"
+            res_not_sig = "النتيجة: لا توجد علاقة معنوية بين المتغيرين (لا نرفض فرض العدم) ✅"
 
+        st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
+        st.write(chi_desc)
+
+        # استخراج الأعمدة الوصفية (نصوص أو فئات)
+        cat_cols = df.select_dtypes(include=['object', 'category', 'string', 'bool']).columns.tolist()
+        
+        if len(cat_cols) >= 2:
+            ccol1, ccol2 = st.columns(2)
+            var_1 = ccol1.selectbox(var1_label, cat_cols)
+            var_2 = ccol2.selectbox(var2_label, cat_cols)
+            
+            if st.button(chi_btn):
+                if var_1 == var_2:
+                    st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
+                else:
+                    # بناء الجدول المزدوج
+                    crosstab_df = pd.crosstab(df[var_1], df[var_2])
+                    st.markdown(f"**{res_crosstab}**")
+                    st.dataframe(crosstab_df, use_container_width=True)
+                    
+                    # إجراء اختبار كاي تربيع
+                    chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
+                    
+                    # عرض النتائج
+                    k1, k2, k3 = st.columns(3)
+                    k1.metric(res_stat, f"{chi2:.4f}")
+                    k2.metric(res_pval, f"{p_val_chi:.4f}")
+                    k3.metric(res_dof, f"{dof}")
+                    
+                    if p_val_chi < 0.05:
+                        st.warning(res_sig)
+                    else:
+                        st.success(res_not_sig)
+        else:
+            st.info(chi_no_cat)
 # ==========================================
 # باقي الأجنحة (مؤقتة لحين اكتمالها)
 # ==========================================
