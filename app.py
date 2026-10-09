@@ -764,7 +764,7 @@ elif "Inferential" in page or "الاستدلالي" in page:
 # ==========================================
 # 1. عائلة الفروق المعلمية (Parametric Tests)
 # ==========================================
-if "1" in family_choice:
+                    if "1" in family_choice:
                         st.markdown("### 🔬 مختبر الفروق المعلمية (Parametric Tests Laboratory)")
                         st.info("تفترض هذه الاختبارات اعتدالية التوزيع (البيانات تتبع التوزيع الطبيعي). يتم حساب أحجام الأثر (Effect Sizes) تلقائياً للمجلات العلمية.")
                         
