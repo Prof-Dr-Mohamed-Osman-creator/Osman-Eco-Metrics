@@ -623,19 +623,19 @@ elif page == t["desc_stats"]:
             res_sig = "النتيجة: توجد علاقة معنوية بين المتغيرين (نرفض فرض العدم) ❌"
             res_not_sig = "النتيجة: لا توجد علاقة معنوية بين المتغيرين (لا نرفض فرض العدم) ✅"
 
-        st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
-        st.write(chi_desc)
-                        
-        # استخراج الأعمدة الوصفية (نصوص أو فئات) #
-        cat_cols = df_desc.columns.tolist()
-                        
-        if len(cat_cols) >= 2:
-           col1, col2 = st.columns(2)
-           var_1 = col1.selectbox(var1_label, cat_cols)
-           var_2 = col2.selectbox(var2_label, cat_cols)
+            st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
+            st.write(chi_desc)
                             
-           if st.button(chi_btn):
-                   if var_1 == var_2:
+            # استخراج الأعمدة الوصفية (نصوص أو فئات) #
+            cat_cols = df_desc.columns.tolist()
+                            
+            if len(cat_cols) >= 2:
+               col1, col2 = st.columns(2)
+               var_1 = col1.selectbox(var1_label, cat_cols)
+               var_2 = col2.selectbox(var2_label, cat_cols)
+                                
+               if st.button(chi_btn):
+                       if var_1 == var_2:
                        st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
                    else:
                    # بناء الجدول المزدوج
