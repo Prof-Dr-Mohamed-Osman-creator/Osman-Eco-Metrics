@@ -662,8 +662,8 @@ elif page == t["desc_stats"]:
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
 # ==========================================
-elif page == "Comprehensive Data Portal" or page == "بوابة البيانات الشاملة (استبيانات وسلاسل)":
-    # إعداد النصوص باللغتين
+# الضربة الذكية: استخدام in لالتقاط الجناح حتى مع وجود إيموجي
+elif "Comprehensive" in page or "الشاملة" in page:  
             if selected_lang == "English":
                 portal_title = "📂 Comprehensive Data Portal"
                 portal_desc = "Upload your dataset here. Once uploaded, the data will be securely saved in the 'Smart Memory' and instantly available across all analytical wings (Descriptive, Inferential, Psychometrics, AI Assistant, etc.)."
@@ -679,12 +679,10 @@ elif page == "Comprehensive Data Portal" or page == "بوابة البيانات
                 preview_title = "👀 نظرة سريعة على البيانات:"
                 vars_title = "📌 المتغيرات (الأعمدة) التي تم التعرف عليها:"
 
-            # عنوان الجناح المزين
             st.markdown(f"<h2 style='color: #2E86C1;'>{portal_title}</h2>", unsafe_allow_html=True)
             st.write(portal_desc)
             st.markdown("---")
 
-            # أداة رفع الملفات السحرية
             uploaded_file = st.file_uploader(upload_label, type=['csv', 'xlsx', 'xls'])
 
             if uploaded_file is not None:
@@ -692,28 +690,23 @@ elif page == "Comprehensive Data Portal" or page == "بوابة البيانات
                     try:
                         import pandas as pd
                         
-                        # التعرف الديناميكي على نوع الملف وقراءته
                         if uploaded_file.name.endswith('.csv'):
                             df_uploaded = pd.read_csv(uploaded_file)
                         elif uploaded_file.name.endswith(('.xlsx', '.xls')):
                             df_uploaded = pd.read_excel(uploaded_file)
                         
-                        # 🚀 الضربة الهندسية: حقن البيانات في الذاكرة الذكية لتتصل بكل الأجنحة!
                         st.session_state['smart_memory'] = df_uploaded
                         
                         st.success(success_msg)
                         
-                        # عرض شكل البيانات (صفوف وأعمدة)
                         if selected_lang == "English":
                             st.info(f"📊 Dataset Shape: {df_uploaded.shape[0]} Rows, {df_uploaded.shape[1]} Columns.")
                         else:
                             st.info(f"📊 حجم البيانات: {df_uploaded.shape[0]} صف (مشاهدة)، و {df_uploaded.shape[1]} عمود (متغير).")
 
-                        # عرض المتغيرات كـ "أزرار" أو علامات أنيقة
                         st.markdown(f"**{vars_title}**")
                         st.write(df_uploaded.columns.tolist())
                         
-                        # عرض عينة من البيانات ليطمئن الباحث
                         st.markdown(f"**{preview_title}**")
                         st.dataframe(df_uploaded.head(10), use_container_width=True)
 
@@ -724,9 +717,4 @@ elif page == "Comprehensive Data Portal" or page == "بوابة البيانات
 # باقي الأجنحة (مؤقتة لحين اكتمالها)
 # ==========================================
 else:
-    st.markdown(f"<h2 style='color: #7F8C8D; text-align: center;'>{page}</h2>", unsafe_allow_html=True)
-    
-    if selected_lang == "English":
-        st.info("🚧 Algorithms are currently being linked, and this wing is under construction...")
-    else:
-        st.info("🚧 جاري ربط الخوارزميات وبناء هذا الجناح...")
+            st.markdown(f"<h2 style='color: #7F8C8D; text-align: center;'>{page}</h2>", unsafe_allow_html=True)
