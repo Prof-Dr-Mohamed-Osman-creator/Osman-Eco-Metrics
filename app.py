@@ -834,14 +834,43 @@ elif "Inferential" in page or "الاستدلالي" in page:
                         st.markdown("**الانحدار الخطي (بسيط / متعدد) | Linear Regression (Simple / Multiple)**")
                         dv = st.selectbox("المتغير التابع (Y) / Dependent Variable:", numeric_cols)
                         iv = st.multiselect("المتغيرات المستقلة (X) / Independent Variables:", [c for c in numeric_cols if c != dv])
+                        
                         if st.button("تشغيل نموذج الانحدار / Run Regression Model") and iv:
-                            reg_results = pg.linear_regression(df_infer[iv], df_infer[dv])
-                            st.dataframe(reg_results, use_container_width=True)
-
-                except ImportError:
-                    st.error("⚠️ محركات pingouin أو scipy غير مثبتة! يرجى إضافتها لملف requirements.txt.")
-                except Exception as e:
-                    st.error(f"❌ حدث خطأ في الحساب الإحصائي: {e}")
+                            import statsmodels.api as sm
+                            import pandas as pd
+                            
+                            # تنظيف البيانات من القيم المفقودة لضمان دقة النموذج
+                            df_reg = df_infer[[dv] + iv].dropna()
+                            X = df_reg[iv]
+                            Y = df_reg[dv]
+                            
+                            # إضافة القاطع (Intercept/Constant) وهو ضروري جداً في الاقتصاد القياسي
+                            X = sm.add_constant(X)
+                            
+                            # بناء النموذج وتقديره
+                            model = sm.OLS(Y, X).fit()
+                            
+                            # 1. عرض مؤشرات جودة النموذج الكلية (بما فيها قيمة F) في لوحة أنيقة
+                            st.markdown("### 📈 مؤشرات جودة النموذج (Model Summary)")
+                            col1, col2, col3, col4 = st.columns(4)
+                            col1.metric("R-squared (R²)", f"{model.rsquared:.4f}")
+                            col2.metric("Adj. R-squared", f"{model.rsquared_adj:.4f}")
+                            col3.metric("F-statistic (قيمة ف)", f"{model.fvalue:.4f}")
+                            col4.metric("Prob (F-statistic)", f"{model.f_pvalue:.4e}")
+                            
+                            # 2. عرض جدول معاملات الانحدار (T-tests)
+                            st.markdown("### 🧮 معاملات الانحدار (Coefficients)")
+                            results_df = pd.DataFrame({
+                                "Coefficient (المعامل)": model.params,
+                                "Std. Error (الخطأ المعياري)": model.bse,
+                                "t-value (قيمة ت)": model.tvalues,
+                                "P>|t| (مستوى الدلالة)": model.pvalues
+                            })
+                            st.dataframe(results_df, use_container_width=True)
+                            
+                            # 3. زر سحري لعرض التقرير الكلاسيكي الكامل (مثل EViews و SPSS)
+                            with st.expander("📄 عرض التقرير القياسي الكامل (Full EViews/SPSS Style Summary)"):
+                                st.text(model.summary().as_text())
 
 # ==========================================
 # باقي الأجنحة (مؤقتة لحين اكتمالها)
