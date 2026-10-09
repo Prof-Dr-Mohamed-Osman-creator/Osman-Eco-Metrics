@@ -30,28 +30,69 @@ if 'smart_memory' not in st.session_state:
 # ==========================================
 # 🚀 القائمة الجانبية (الأجنحة)
 # ==========================================
-st.sidebar.title("🚀 أجنحة المختبر الرقمي")
+import streamlit as st
+import pandas as pd
+# (باقي الاستدعاءات التي لديك في أعلى الملف تبقى كما هي)
+
+# --- 1. مفتاح اختيار اللغة (Language Switcher) ---
+# نجعل الإنجليزية في الفهرس 0 لتكون هي الافتراضية
+st.sidebar.markdown("---")
+selected_lang = st.sidebar.selectbox("🌐 Select Language / اختر اللغة", ["English", "العربية"], index=0)
 st.sidebar.markdown("---")
 
-app_mode = st.sidebar.radio(
-    "اختر الجناح المطلوب:",
+# --- 2. القاموس اللغوي (Translation Dictionary) ---
+lang_dict = {
+    "English": {
+        "sys_title": "Osman Eco-Metrics System",
+        "sys_subtitle": "Digital Eco-Dynamic School | Comprehensive Metrics Lab",
+        "menu_title": "🚀 Select Wing:",
+        "home": "🏠 Home Page",
+        "harvest": "🕸️ Automated Data Harvest",
+        "world_bank": "World Bank Data",
+        "un_comtrade": "UN Comtrade",
+        "desc_stats": "📊 Descriptive Statistics & Distribution",
+        "econometrics": "📈 Econometrics & Forecasting",
+        "machine_learning": "🤖 Machine Learning (Post-Harvest)",
+        "ai_assistant": "✨ Gemini AI Assistant",
+        "eco_encyclopedia": "📖 Eco-Dynamic Encyclopedia"
+    },
+    "العربية": {
+        "sys_title": "Osman Eco-Metrics System",
+        "sys_subtitle": "المدرسة الإيكو-ديناميكية الرقمية | مختبر القياس المتعدد الشامل",
+        "menu_title": "🚀 اختر الجناح المطلوب:",
+        "home": "🏠 الصفحة الرئيسية",
+        "harvest": "🕸️ رادار الحصاد الآلي للبيانات",
+        "world_bank": "بيانات البنك الدولي",
+        "un_comtrade": "الأمم المتحدة - كومتريد",
+        "desc_stats": "📊 الإحصاء الوصفي وتوزيع البيانات",
+        "econometrics": "📈 النماذج القياسية والتنبؤ",
+        "machine_learning": "🤖 محاكي فاقد ما بعد الحصاد (ML)",
+        "ai_assistant": "✨ المساعد الذكي وصياغة التقارير",
+        "eco_encyclopedia": "📖 موسوعة المدرسة الإيكو-ديناميكية"
+    }
+}
+
+# نخصص المتغير 't' ليحمل كلمات اللغة التي اختارها الباحث
+t = lang_dict[selected_lang]
+
+# --- 3. بناء القائمة الجانبية باللغة المختارة ---
+page = st.sidebar.radio(
+    t["menu_title"],
     [
-        "🏠 الصفحة الرئيسية",
-        "🕸️ رادار الحصاد الآلي للبيانات",
-        "📂 بوابة البيانات الشاملة (استبيانات وسلاسل)",
-        "📊 الإحصاء الوصفي وتوزيع البيانات",
-        "📈 الإحصاء الاستدلالي (Parametric & Non-Parametric)",
-        "📉 النماذج القياسية والتنبؤ (Econometrics)",
-        "✨ المساعد الذكي وصياغة التقارير (Gemini AI)",
-        "📖 موسوعة المدرسة الإيكو-ديناميكية",
-        "🧠 القياس النفسي وتأكيد المقاييس (Psychometrics)",
-        "⚙️ بحوث العمليات (Operations Research)",
-        "🤖 محاكي فاقد ما بعد الحصاد (Machine Learning)",
-        "🌍 مرصد التنافسية التصديرية والبصمة المائية",
-        "🎓 أكاديمية التدريب والدورات",
-        "💬 مجتمع الباحثين (تواصل ومناقشات)"
+        t["home"], 
+        t["harvest"], 
+        t["desc_stats"],
+        t["econometrics"],
+        t["machine_learning"],
+        t["ai_assistant"],
+        t["eco_encyclopedia"]
     ]
 )
+
+# --- 4. العناوين الرئيسية للمنصة باللغة المختارة ---
+st.markdown(f"<h1 style='text-align: center; color: #2E86C1;'>📊 {t['sys_title']}</h1>", unsafe_allow_html=True)
+st.markdown(f"<h3 style='text-align: center; color: #5D6D7E;'>{t['sys_subtitle']}</h3>", unsafe_allow_html=True)
+st.markdown("---")
 
 st.sidebar.markdown("---")
 st.sidebar.success("Designed by: Prof. Dr. Mohamed Osman (Egypt) © 2026")
