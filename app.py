@@ -363,8 +363,157 @@ elif app_mode == "✨ المساعد الذكي وصياغة التقارير (G
         st.warning("هذا الزر يعمل بنفس الآلية السابقة.. (سيتم برمجته لاحقاً)")
 
 # ==========================================
+# 5. التوجيه وفتح الأجنحة (Routing)
+# ==========================================
+
+if page == t["home"]:
+    welcome_msg = "Please select an analytical wing from the sidebar to activate the algorithms." if selected_lang == "English" else "يرجى اختيار جناح التحليل من القائمة الجانبية لتفعيل الخوارزميات."
+    st.info(f"👈 {welcome_msg}")
+
+elif page == t["harvest"]:
+    st.markdown("<h2 style='color: #2E86C1;'>🕸️ Automated Data Harvest | رادار الحصاد الآلي</h2>", unsafe_allow_html=True)
+    # ⚠️ (اترك كود الحصاد الخاص بالبنك الدولي والأمم المتحدة هنا كما هو دون حذف) ⚠️
+
+elif page == t["desc_stats"]:
+    # --- قاموس الإحصاء الوصفي المدمج ---
+    if selected_lang == "English":
+        header_title = "📊 Descriptive Statistics & Distribution Tests"
+        header_desc = "This wing provides a comprehensive suite of descriptive metrics, dispersion measures, and normality tests for the retrieved data."
+        empty_msg = "👈 The table is currently empty! Please go to (Automated Data Harvest) to fetch data into the Smart Memory first."
+        ready_msg = "✅ Data is ready on the analytical table!"
+        select_col_msg = "🎯 Select the variable (column) to analyze:"
+        btn_msg = "Serve Statistical Meal 🍽️"
+        spinner_msg = "Algorithms are processing data and calculating metrics..."
+        cat1, cat2, cat3, cat4 = "### 1️⃣ Central Tendency", "### 2️⃣ Dispersion", "### 3️⃣ Distribution Shape", "### 4️⃣ Kolmogorov-Smirnov Test (Normality)"
+        m_mean, m_median, m_mode, m_geom, m_harm = "Mean", "Median", "Mode", "Geometric Mean", "Harmonic Mean"
+        m_var, m_std, m_range, m_iqr, m_cv = "Variance", "Std Deviation", "Range", "IQR", "CV (%)"
+        m_skew, m_kurt, m_mad = "Skewness", "Kurtosis", "Mean Abs Dev (MAD)"
+        m_ks, m_pval = "K-S Statistic", "P-Value"
+        ks_pass = "Result: Data follows a normal distribution (Fail to reject H0) ✅"
+        ks_fail = "Result: Data does not follow a normal distribution (Reject H0) ❌"
+        vis_title, hist_title, qq_title = "### 🎨 Data Visualization", "Histogram with Outliers Boxplot", "**Q-Q Plot for Normality**"
+        no_num_msg = "The data in memory does not contain quantitative variables. Please check the data."
+    else:
+        header_title = "📊 مائدة الإحصاء الوصفي واختبارات التوزيع"
+        header_desc = "يقدم هذا الجناح وجبة متكاملة من المقاييس الوصفية، مقاييس التشتت، واختبارات التوزيع الطبيعي للبيانات المستدعاة."
+        empty_msg = "👈 المائدة فارغة حالياً! يرجى الذهاب إلى (رادار الحصاد) لجلب البيانات أولاً لتستقر في الذاكرة الذكية."
+        ready_msg = "✅ البيانات جاهزة على المائدة البرمجية!"
+        select_col_msg = "🎯 اختر المتغير (العمود) لتقديم وجبة الإحصاء الوصفي له:"
+        btn_msg = "تقديم الوجبة الإحصائية 🍽️"
+        spinner_msg = "الخوارزميات تقوم بطهي البيانات وحساب المقاييس..."
+        cat1, cat2, cat3, cat4 = "### 1️⃣ مقبلات النزعة المركزية", "### 2️⃣ الطبق الرئيسي للتشتت", "### 3️⃣ شكل التوزيع", "### 4️⃣ اختبار كولومجروف-سميرنوف (الطبيعية)"
+        m_mean, m_median, m_mode, m_geom, m_harm = "المتوسط الحسابي", "الوسيط", "المنوال", "المتوسط الهندسي", "المتوسط التوافقي"
+        m_var, m_std, m_range, m_iqr, m_cv = "التباين", "الانحراف المعياري", "المدى", "الانحراف الربيعي (IQR)", "معامل الاختلاف (CV)"
+        m_skew, m_kurt, m_mad = "الالتواء (Skewness)", "التفلطح (Kurtosis)", "الانحراف المتوسط"
+        m_ks, m_pval = "إحصاء الاختبار (K-S)", "القيمة الاحتمالية (P-Value)"
+        ks_pass = "نتيجة الاختبار: البيانات تتبع التوزيع الطبيعي (لا نرفض الفرض العدم) ✅"
+        ks_fail = "نتيجة الاختبار: البيانات لا تتبع التوزيع الطبيعي (نرفض الفرض العدم) ❌"
+        vis_title, hist_title, qq_title = "### 🎨 الرؤية البصرية للبيانات", "المدرج التكراري (Histogram) مع صندوق القيم الشاذة", "**رسم الـ Q-Q Plot للطبيعية**"
+        no_num_msg = "البيانات الموجودة في الذاكرة لا تحتوي على متغيرات رقمية. يرجى التأكد من البيانات."
+
+    # --- واجهة الجناح ---
+    st.markdown(f"<h2 style='color: #2E86C1;'>{header_title}</h2>", unsafe_allow_html=True)
+    st.write(header_desc)
+    
+    if 'smart_memory' not in st.session_state or st.session_state['smart_memory'].empty:
+        st.info(empty_msg)
+    else:
+        df = st.session_state['smart_memory']
+        st.success(ready_msg)
+        
+        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
+        
+        if len(numeric_cols) > 0:
+            selected_col = st.selectbox(select_col_msg, numeric_cols)
+            data_col = df[selected_col].dropna()
+            
+            if st.button(btn_msg):
+                with st.spinner(spinner_msg):
+                    import numpy as np
+                    from scipy import stats
+                    import plotly.express as px
+                    import matplotlib.pyplot as plt
+                    
+                    # الحسابات الإحصائية
+                    mean = np.mean(data_col)
+                    median = np.median(data_col)
+                    mode_result = stats.mode(data_col, keepdims=False)
+                    mode = mode_result.mode if hasattr(mode_result, 'mode') else mode_result[0]
+                    pos_data = data_col.loc[data_col > 0]
+                    geom_mean = stats.gmean(pos_data) if not pos_data.empty else np.nan
+                    harm_mean = stats.hmean(pos_data) if not pos_data.empty else np.nan
+                    
+                    data_range = np.ptp(data_col)
+                    iqr = stats.iqr(data_col)
+                    variance = np.var(data_col, ddof=1)
+                    std_dev = np.std(data_col, ddof=1)
+                    mad = (data_col - mean).abs().mean()
+                    cv = (std_dev / mean) * 100 if mean != 0 else np.nan
+                    
+                    skewness = stats.skew(data_col)
+                    kurtosis = stats.kurtosis(data_col)
+                    
+                    std_data = (data_col - mean) / std_dev
+                    ks_stat, p_value = stats.kstest(std_data, 'norm')
+                    
+                    # العرض الديناميكي
+                    st.markdown(cat1)
+                    c1, c2, c3, c4, c5 = st.columns(5)
+                    c1.metric(m_mean, f"{mean:.4f}")
+                    c2.metric(m_median, f"{median:.4f}")
+                    c3.metric(m_mode, f"{mode:.4f}")
+                    c4.metric(m_geom, f"{geom_mean:.4f}")
+                    c5.metric(m_harm, f"{harm_mean:.4f}")
+                    
+                    st.markdown(cat2)
+                    d1, d2, d3, d4, d5 = st.columns(5)
+                    d1.metric(m_var, f"{variance:.4f}")
+                    d2.metric(m_std, f"{std_dev:.4f}")
+                    d3.metric(m_range, f"{data_range:.4f}")
+                    d4.metric(m_iqr, f"{iqr:.4f}")
+                    d5.metric(m_cv, f"{cv:.2f}%")
+                    
+                    st.markdown(cat3)
+                    s1, s2, s3 = st.columns(3)
+                    s1.metric(m_skew, f"{skewness:.4f}")
+                    s2.metric(m_kurt, f"{kurtosis:.4f}")
+                    s3.metric(m_mad, f"{mad:.4f}")
+                    
+                    st.markdown(cat4)
+                    k1, k2 = st.columns(2)
+                    k1.metric(m_ks, f"{ks_stat:.4f}")
+                    k2.metric(m_pval, f"{p_value:.4f}")
+                    
+                    if p_value > 0.05:
+                        st.success(ks_pass)
+                    else:
+                        st.warning(ks_fail)
+                        
+                    st.markdown(vis_title)
+                    vcol1, vcol2 = st.columns(2)
+                    
+                    with vcol1:
+                        fig_hist = px.histogram(data_frame=df, x=selected_col, marginal="box", 
+                                                title=hist_title, color_discrete_sequence=['#2E86C1'])
+                        st.plotly_chart(fig_hist, use_container_width=True)
+                        
+                    with vcol2:
+                        st.markdown(qq_title)
+                        fig, ax = plt.subplots(figsize=(6, 4))
+                        stats.probplot(data_col, dist="norm", plot=ax)
+                        ax.set_title("")
+                        ax.get_lines()[0].set_markerfacecolor('#2E86C1')
+                        st.pyplot(fig)
+        else:
+            st.warning(no_num_msg)
+
+# ==========================================
 # باقي الأجنحة (مؤقتة لحين اكتمالها)
 # ==========================================
 else:
-    st.markdown(f"<h1 style='color: #7F8C8D;'>{app_mode}</h1>", unsafe_allow_html=True)
-    st.write("...جاري ربط الخوارزميات وبناء هذا الجناح...")
+    st.markdown(f"<h2 style='color: #7F8C8D; text-align: center;'>{page}</h2>", unsafe_allow_html=True)
+    
+    if selected_lang == "English":
+        st.info("🚧 Algorithms are currently being linked, and this wing is under construction...")
+    else:
+        st.info("🚧 جاري ربط الخوارزميات وبناء هذا الجناح...")
