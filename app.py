@@ -761,37 +761,98 @@ elif "Inferential" in page or "الاستدلالي" in page:
                     import plotly.express as px
                     import numpy as np
                     
-                    # 1. عائلة الفروق (المعلمية واللامعلمية)
-                    if "1" in family_choice:
-                        test_type = st.selectbox("اختر الاختبار الدقيق / Select Test:", ["One-Sample T-Test", "Independent T-Test / Mann-Whitney", "One-Way ANOVA / Kruskal"])
-                        if test_type == "One-Sample T-Test":
-                            col_to_test = st.selectbox("المتغير / Variable:", numeric_cols)
-                            pop_mean = st.number_input("المتوسط المفترض / Test Value:", value=0.0)
-                            if st.button("إجراء الاختبار / Run Test"):
-                                st.dataframe(pg.ttest(df_infer[col_to_test].dropna(), pop_mean), use_container_width=True)
-                        elif test_type == "Independent T-Test / Mann-Whitney":
-                            target_var = st.selectbox("المتغير التابع / Dependent Variable:", numeric_cols)
-                            group_var = st.selectbox("متغير التجميع / Grouping Variable:", categorical_cols)
-                            if st.button("إجراء الاختبار / Run"):
+# ==========================================
+# 1. عائلة الفروق المعلمية (Parametric Tests)
+# ==========================================
+if "1" in family_choice:
+                        st.markdown("### 🔬 مختبر الفروق المعلمية (Parametric Tests Laboratory)")
+                        st.info("تفترض هذه الاختبارات اعتدالية التوزيع (البيانات تتبع التوزيع الطبيعي). يتم حساب أحجام الأثر (Effect Sizes) تلقائياً للمجلات العلمية.")
+                        
+                        para_test = st.selectbox("🎯 اختر الاختبار المعلمي الدقيق / Select specific test:", [
+                            "1. اختبار T لعينة واحدة (One-Sample T-Test)",
+                            "2. اختبار T لعينتين مستقلتين (Independent Samples T-Test)",
+                            "3. اختبار T للعينات المترابطة (Paired Samples T-Test)",
+                            "4. تحليل التباين الأحادي (One-Way ANOVA) مع Post-Hoc",
+                            "5. تحليل التباين الثنائي (Two-Way ANOVA)"
+                        ])
+                        
+                        st.markdown("---")
+                        
+                        # 1. اختبار T لعينة واحدة
+                        if "One-Sample" in para_test:
+                            col_to_test = st.selectbox("اختر المتغير المراد اختباره / Select Variable:", numeric_cols)
+                            pop_mean = st.number_input("أدخل المتوسط المفترض للمجتمع (Test Value):", value=0.0)
+                            if st.button("إجراء اختبار T لعينة واحدة / Run Test"):
+                                res = pg.ttest(df_infer[col_to_test].dropna(), pop_mean)
+                                st.success(f"📌 مقارنة متوسط [{col_to_test}] مع القيمة المعيارية ({pop_mean})")
+                                st.dataframe(res, use_container_width=True)
+                        
+                        # 2. اختبار T لعينتين مستقلتين
+                        elif "Independent" in para_test:
+                            target_var = st.selectbox("المتغير التابع (الكمي) / Dependent Variable:", numeric_cols)
+                            group_var = st.selectbox("متغير التجميع (الفئوي) / Grouping Variable:", categorical_cols)
+                            if st.button("إجراء اختبار T المستقل / Run Test"):
                                 groups = df_infer[group_var].dropna().unique()
                                 if len(groups) == 2:
                                     g1 = df_infer[df_infer[group_var] == groups[0]][target_var].dropna()
                                     g2 = df_infer[df_infer[group_var] == groups[1]][target_var].dropna()
-                                    st.markdown("**اختبار T (Parametric):**")
-                                    st.dataframe(pg.ttest(g1, g2), use_container_width=True)
-                                    st.markdown("**اختبار مان-ويتني (Non-Parametric):**")
-                                    st.dataframe(pg.mwu(g1, g2), use_container_width=True)
+                                    st.success(f"📌 مقارنة [{target_var}] بين مجموعتي: ({groups[0]}) و ({groups[1]})")
+                                    res_t = pg.ttest(g1, g2)
+                                    st.dataframe(res_t, use_container_width=True)
                                 else:
-                                    st.error("⚠️ متغير التجميع يجب أن يحتوي على مجموعتين فقط.")
-                        elif test_type == "One-Way ANOVA / Kruskal":
-                            target_var = st.selectbox("المتغير التابع / Dependent Variable:", numeric_cols)
-                            group_var = st.selectbox("متغير التجميع / Grouping Variable:", categorical_cols)
-                            if st.button("إجراء الاختبار / Run"):
-                                st.markdown("**تحليل التباين (ANOVA):**")
-                                st.dataframe(pg.anova(data=df_infer, dv=target_var, between=group_var), use_container_width=True)
-                                st.markdown("**اختبار كروسكال-واليس (Kruskal-Wallis):**")
-                                st.dataframe(pg.kruskal(data=df_infer, dv=target_var, between=group_var), use_container_width=True)
-
+                                    st.error(f"⚠️ المتغير الفئوي [{group_var}] يحتوي على {len(groups)} مجموعات. هذا الاختبار يتطلب مجموعتين فقط!")
+                        
+                        # 3. اختبار T للعينات المترابطة (القبلي والبعدي)
+                        elif "Paired" in para_test:
+                            st.write("يُستخدم لمقارنة نفس العينة في فترتين (مثل: قبل وبعد تطبيق سياسة تسعيرية).")
+                            var_pre = st.selectbox("المتغير الأول (القبلي) / Pre-Test Variable:", numeric_cols)
+                            var_post = st.selectbox("المتغير الثاني (البعدي) / Post-Test Variable:", [c for c in numeric_cols if c != var_pre])
+                            if st.button("إجراء اختبار T المترابط / Run Test"):
+                                # تنظيف القيم المفقودة مع الحفاظ على الترابط
+                                df_paired = df_infer[[var_pre, var_post]].dropna()
+                                res_paired = pg.ttest(df_paired[var_pre], df_paired[var_post], paired=True)
+                                st.success(f"📌 مقارنة مترابطة بين [{var_pre}] و [{var_post}]")
+                                st.dataframe(res_paired, use_container_width=True)
+                        
+                        # 4. تحليل التباين الأحادي (One-Way ANOVA)
+                        elif "One-Way ANOVA" in para_test:
+                            target_var = st.selectbox("المتغير التابع (الكمي) / Dependent Variable:", numeric_cols)
+                            group_var = st.selectbox("متغير التجميع (الفئوي - أكثر من مجموعتين) / Grouping Variable:", categorical_cols)
+                            if st.button("إجراء تحليل التباين / Run ANOVA"):
+                                groups_count = df_infer[group_var].nunique()
+                                if groups_count > 2:
+                                    st.success(f"📌 تحليل تباين لـ [{target_var}] عبر {groups_count} مجموعات في [{group_var}]")
+                                    # جدول الأنوڤا
+                                    res_anova = pg.anova(data=df_infer, dv=target_var, between=group_var)
+                                    st.markdown("**📊 جدول تحليل التباين (ANOVA Table)**")
+                                    st.dataframe(res_anova, use_container_width=True)
+                                    
+                                    # اختبار توكي البعدي (Tukey Post-Hoc) لمعرفة أين تكمن الفروق
+                                    if res_anova['p-unc'][0] < 0.05:
+                                        st.warning("✨ نتيجة الأنوڤا دالة إحصائياً! إليك اختبار (توكي) لتحديد المجموعات المختلفة:")
+                                        res_tukey = pg.pairwise_tukey(data=df_infer, dv=target_var, between=group_var)
+                                        st.dataframe(res_tukey, use_container_width=True)
+                                    else:
+                                        st.info("💡 لا توجد فروق دالة إحصائياً بين المجموعات الكلية، لذا لا حاجة لإجراء اختبارات بعدية (Post-Hoc).")
+                                else:
+                                    st.warning("⚠️ المتغير الفئوي يحتوي على مجموعتين أو أقل، يُفضل استخدام اختبار T لعينتين مستقلتين.")
+                                    
+                        # 5. تحليل التباين الثنائي (Two-Way ANOVA)
+                        elif "Two-Way ANOVA" in para_test:
+                            st.write("لدراسة تأثير عاملين فئويين (متغيرين مستقلين) معاً والتفاعل بينهما على متغير كمي تابع.")
+                            target_var = st.selectbox("المتغير التابع (الكمي) / Dependent Variable:", numeric_cols)
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                group_var1 = st.selectbox("العامل الأول / Factor 1:", categorical_cols)
+                            with col2:
+                                group_var2 = st.selectbox("العامل الثاني / Factor 2:", [c for c in categorical_cols if c != group_var1])
+                                
+                            if st.button("إجراء التباين الثنائي / Run Two-Way ANOVA"):
+                                st.success(f"📌 دراسة تأثير [{group_var1}] و [{group_var2}] والتفاعل بينهما على [{target_var}]")
+                                res_two_way = pg.anova(data=df_infer.dropna(subset=[target_var, group_var1, group_var2]), 
+                                                       dv=target_var, 
+                                                       between=[group_var1, group_var2])
+                                st.dataframe(res_two_way, use_container_width=True)
                     # 2. عائلة الارتباط
                     elif "2" in family_choice:
                         var_x = st.selectbox("المتغير الأول / Variable X:", numeric_cols)
