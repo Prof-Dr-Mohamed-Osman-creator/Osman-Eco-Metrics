@@ -738,19 +738,13 @@ elif "Inferential" in page or "الاستدلالي" in page:
                 
                 families = [
                     "اختر العائلة الإحصائية...",
-                    "1. الفروق المعلمية واللامعلمية (T-tests, ANOVA, Mann-Whitney)", 
-                    "2. الارتباط والتوافق (Correlation)", 
-                    "3. اختبارات التوزيع والاعتدالية (Normality Tests)",
-                    "4. الاحتمالات والتوزيعات (Probabilities & Z-Scores)",
-                    "5. الانحدار الاستدلالي الأساسي (Basic Regression)"
-                ] if selected_lang == "العربية" else [
-                    "Select Family...",
-                    "1. Differences (T-tests, ANOVA, Mann-Whitney)",
-                    "2. Correlation & Association",
-                    "3. Normality Tests",
-                    "4. Probabilities & Z-Scores",
-                    "5. Basic Regression"
-                ]
+                    "1. الفروق المعلمية (Parametric Tests)", 
+                    "2. الاختبارات اللامعلمية (Non-Parametric Tests)",
+                    "3. الارتباط والتوافق (Correlation)", 
+                    "4. اختبارات التوزيع والاعتدالية (Normality Tests)",
+                    "5. الاحتمالات والتوزيعات (Probabilities)",
+                    "6. الانحدار الاستدلالي الأساسي (Basic Regression)"
+                ] 
                 
                 family_choice = st.selectbox("اختر العائلة / Select Family:", families)
                 st.markdown("---")
