@@ -342,7 +342,7 @@ elif page == t["harvest"]:
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
-   elif page == t["ai_assistant"]:
+elif page == t["ai_assistant"]:
     # إعداد نصوص اللغتين لمكتب المستشار (هذا السطر يجب أن يكون مزاحاً للداخل)
     if selected_lang == "English":
         ai_title = "✨ Gemini AI Assistant & Report Generation"
