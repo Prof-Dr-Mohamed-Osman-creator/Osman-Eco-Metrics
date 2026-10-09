@@ -309,21 +309,29 @@ elif page == t["harvest"]:
             else:
                 # هذا السطر يجب أن يكون موجوداً ومزاحاً للداخل تحت else
                 st.error("لم يتم العثور على بيانات مطابقة." if selected_lang == "العربية" else "No matching data found.")
- # ==========================================
+# ==========================================
         # 📈 الشاشة البصرية: رسم البيانات المحصودة مباشرة
         # ==========================================
         if 'smart_memory' in st.session_state and isinstance(st.session_state['smart_memory'], pd.DataFrame) and not st.session_state['smart_memory'].empty:
             st.markdown("---")
             st.markdown("<h3 style='color: #2E86C1;'>📈 النظرة البصرية السريعة / Quick Data Visualization</h3>", unsafe_allow_html=True)
             
-            df_harvested = st.session_state['smart_memory']
+            df_harvested = st.session_state['smart_memory'].copy()
             
-            # استخراج الأعمدة
+            # 🚀 الحل السحري: إجبار الأعمدة التي تحتوي على أرقام نصية للتحول إلى أرقام حقيقية
+            for col in df_harvested.columns:
+                try:
+                    # ignore=True يمنع توقف البرنامج إذا وجد نصوصاً لا يمكن تحويلها
+                    df_harvested[col] = pd.to_numeric(df_harvested[col])
+                except:
+                    pass
+            
+            # استخراج الأعمدة الرقمية (الآن ستنجح الخوارزمية في رؤيتها)
             numeric_cols_harvest = df_harvested.select_dtypes(include=['float64', 'int64']).columns.tolist()
             time_cols = [col for col in df_harvested.columns if any(keyword in col.lower() for keyword in ['year', 'date', 'time', 'سنة', 'عام', 'تاريخ'])]
             x_axis_default = time_cols[0] if time_cols else df_harvested.columns[0]
 
-            if numeric_cols_harvest:
+            if len(numeric_cols_harvest) > 0:
                 # إعداد قائمة أنواع الرسوم البيانية باللغتين
                 if selected_lang == "English":
                     chart_types = ["Line Chart 📈", "Bar Chart 📊", "Scatter Plot ⏺️", "Area Chart ⛰️", "Pie Chart 🥧"]
@@ -332,27 +340,22 @@ elif page == t["harvest"]:
                     chart_types = ["رسم خطي 📈", "أعمدة بيانية 📊", "شكل انتشار ⏺️", "مساحة متراكمة ⛰️", "دائرة نسبية 🥧"]
                     chart_label = "🎨 اختر نوع الرسم البياني:"
                     
-                # اختيار نوع الرسم
                 chart_choice = st.selectbox(chart_label, chart_types)
                 st.markdown("---")
                 
-                # الصف الأول: القوائم المنسدلة لاختيار المتغيرات من البيانات
                 hc1, hc2 = st.columns(2)
                 x_axis = hc1.selectbox("📍 اختر المتغير للمحور الأفقي / X-Axis Variable:", df_harvested.columns.tolist(), index=df_harvested.columns.tolist().index(x_axis_default))
                 y_axis = hc2.selectbox("📊 اختر المتغير للمحور الرأسي / Y-Axis Variable:", numeric_cols_harvest)
                 
-                # الصف الثاني: مربعات نصية لكتابة أسماء مخصصة للمحاور
                 tc1, tc2 = st.columns(2)
-                custom_x_name = tc1.text_input("✏️ اكتب اسماً مخصصاً للمحور الأفقي (اختياري) / Custom X Name:", placeholder="اتركه فارغاً لاستخدام اسم المتغير")
-                custom_y_name = tc2.text_input("✏️ اكتب اسماً مخصصاً للمحور الرأسي (اختياري) / Custom Y Name:", placeholder="اتركه فارغاً لاستخدام اسم المتغير")
+                custom_x_name = tc1.text_input("✏️ اكتب اسماً مخصصاً للمحور الأفقي (اختياري) / Custom X Name:")
+                custom_y_name = tc2.text_input("✏️ اكتب اسماً مخصصاً للمحور الرأسي (اختياري) / Custom Y Name:")
                 
-                # المعالجة الذكية للمحاور
                 final_x_title = custom_x_name if custom_x_name.strip() != "" else x_axis
                 final_y_title = custom_y_name if custom_y_name.strip() != "" else y_axis
                 
                 chart_title = f"Data Visualization: {final_y_title} vs {final_x_title}" if selected_lang == "English" else f"التمثيل البصري: ({final_y_title}) مقابل ({final_x_title})"
 
-                # بناء الرسم البياني بناءً على اختيار الباحث
                 if "Line" in chart_choice or "خطي" in chart_choice:
                     fig_harvest = px.line(df_harvested, x=x_axis, y=y_axis, markers=True, title=chart_title)
                     fig_harvest.update_traces(line_color='#E74C3C')
@@ -366,18 +369,14 @@ elif page == t["harvest"]:
                     fig_harvest = px.area(df_harvested, x=x_axis, y=y_axis, title=chart_title)
                     fig_harvest.update_traces(line_color='#E74C3C')
                 elif "Pie" in chart_choice or "دائرة" in chart_choice:
-                    # الدائرة النسبية تستخدم names بدلاً من x و values بدلاً من y
                     fig_harvest = px.pie(df_harvested, names=x_axis, values=y_axis, title=chart_title, hole=0.3)
                 
-                # تحديد العناوين النهائية للمحاور (تُستثنى الدائرة النسبية لأنها لا تحتوي على محاور كلاسيكية)
                 if "Pie" not in chart_choice and "دائرة" not in chart_choice:
-                    fig_harvest.update_layout(
-                        xaxis_title=final_x_title,
-                        yaxis_title=final_y_title,
-                        plot_bgcolor='rgba(240, 242, 246, 0.5)'
-                    )
+                    fig_harvest.update_layout(xaxis_title=final_x_title, yaxis_title=final_y_title, plot_bgcolor='rgba(240, 242, 246, 0.5)')
                 
-                st.plotly_chart(fig_harvest, use_container_width=True)   
+                st.plotly_chart(fig_harvest, use_container_width=True)
+            else:
+                st.warning("⚠️ لا توجد بيانات رقمية صالحة للرسم في هذا الجدول." if selected_lang == "العربية" else "⚠️ No valid numeric data found for visualization.") 
 
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
