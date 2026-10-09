@@ -627,7 +627,7 @@ elif page == t["desc_stats"]:
         st.write(chi_desc)
 
         # استخراج الأعمدة الوصفية (نصوص أو فئات)
-        cat_cols = df.select_dtypes(include=['object', 'category', 'string', 'bool']).columns.tolist()
+        cat_cols = df_desc.columns.tolist()
         
         if len(cat_cols) >= 2:
             ccol1, ccol2 = st.columns(2)
@@ -820,8 +820,7 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                     st.dataframe(res_anova, use_container_width=True)
                                     
                                     # التعديل هنا: استخدام .values[0] لتجنب خطأ p-unc
-                                    if res_anova['p-unc'].values[0] < 0.05:
-                                        st.warning("✨ نتيجة الأنوڤا دالة إحصائياً! إليك اختبار (توكي) لتحديد المجموعات المختلفة:")
+                                    if res_anova['p_unc'].values[0] < 0.05:                                        st.warning("✨ نتيجة الأنوڤا دالة إحصائياً! إليك اختبار (توكي) لتحديد المجموعات المختلفة:")
                                         res_tukey = pg.pairwise_tukey(data=df_infer, dv=target_var, between=group_var)
                                         st.dataframe(res_tukey, use_container_width=True)
                                     else:
@@ -917,7 +916,7 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                     st.dataframe(res_kw, use_container_width=True)
                                     
                                     # التعديل هنا: استخدام .values[0]
-                                    if res_kw['p-unc'].values[0] < 0.05:
+                                    if res_kw['p_unc'].values[0] < 0.05:
                                         st.warning("✨ توجد فروق دالة إحصائياً! إليك المقارنات الثنائية (Pairwise Mann-Whitney) لتحديد مصدر الاختلاف:")
                                         res_pw = pg.pairwise_tests(data=df_infer, dv=target_var, between=group_var, parametric=False)
                                         st.dataframe(res_pw, use_container_width=True)
