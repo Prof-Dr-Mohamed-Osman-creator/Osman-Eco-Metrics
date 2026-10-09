@@ -719,71 +719,129 @@ elif "Comprehensive" in page or "الشاملة" in page:
 elif "Inferential" in page or "الاستدلالي" in page:
             if selected_lang == "English":
                 st.markdown("<h2 style='color: #2E86C1;'>📊 Inferential Statistics & Probabilities</h2>", unsafe_allow_html=True)
-                st.write("Advanced statistical laboratory for hypothesis testing, distributions, and relationship modeling.")
+                st.write("Advanced statistical laboratory for hypothesis testing and relationship modeling.")
             else:
                 st.markdown("<h2 style='color: #2E86C1;'>📊 الإحصاء الاستدلالي والاحتمالات</h2>", unsafe_allow_html=True)
                 st.write("المختبر الإحصائي المتقدم لاختبار الفرضيات، التوزيعات الاحتمالية، ونمذجة العلاقات.")
             st.markdown("---")
 
-            # التحقق من وجود بيانات في الذاكرة الذكية
             if 'smart_memory' not in st.session_state or not isinstance(st.session_state['smart_memory'], pd.DataFrame) or st.session_state['smart_memory'].empty:
-                if selected_lang == "English":
-                    st.warning("⚠️ Smart Memory is empty! Please fetch data via 'Harvest Wing' or upload a file in the 'Data Portal' first.")
-                else:
-                    st.warning("⚠️ الذاكرة الذكية فارغة! يرجى جلب البيانات من 'رادار الحصاد' أو رفع ملف عبر 'بوابة البيانات الشاملة' أولاً.")
+                st.warning("⚠️ الذاكرة الذكية فارغة! يرجى جلب أو رفع البيانات أولاً." if selected_lang == "العربية" else "⚠️ Smart Memory is empty!")
             else:
                 df_infer = st.session_state['smart_memory'].copy()
                 st.success("✅ البيانات مستقرة وجاهزة للتحليل الاستدلالي!" if selected_lang == "العربية" else "✅ Data is ready for inferential analysis!")
                 
-                # استخراج الأعمدة الرقمية والفئوية لتسهيل الاختيار على الباحث
                 numeric_cols = df_infer.select_dtypes(include=['float64', 'int64']).columns.tolist()
-                categorical_cols = df_infer.select_dtypes(include=['object', 'category']).columns.tolist()
+                categorical_cols = df_infer.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
 
                 st.markdown("### 🧬 تحديد مسار التحليل / Analysis Path")
                 
-                # 1. اختيار العائلة الإحصائية
-                if selected_lang == "English":
-                    families = [
-                        "Select Family...",
-                        "1. Parametric Tests (T-tests, ANOVA)", 
-                        "2. Non-Parametric Tests (Mann-Whitney, Kruskal)",
-                        "3. Correlation & Association", 
-                        "4. Normality & Distribution Tests",
-                        "5. Probabilities & Distributions",
-                        "6. Basic Inferential Regression"
-                    ]
-                    family_choice = st.selectbox("Select Statistical Family:", families)
-                else:
-                    families = [
-                        "اختر العائلة الإحصائية...",
-                        "1. اختبارات الفروق المعلمية (T-tests, ANOVA)", 
-                        "2. الاختبارات اللامعلمية (Mann-Whitney, Kruskal)",
-                        "3. الارتباط والتوافق (Correlation)", 
-                        "4. اختبارات التوزيع والاعتدالية (Normality)",
-                        "5. الاحتمالات والتوزيعات (Probabilities)",
-                        "6. الانحدار الاستدلالي الأساسي (Regression)"
-                    ]
-                    family_choice = st.selectbox("اختر العائلة الإحصائية:", families)
-
+                families = [
+                    "اختر العائلة الإحصائية...",
+                    "1. الفروق المعلمية واللامعلمية (T-tests, ANOVA, Mann-Whitney)", 
+                    "2. الارتباط والتوافق (Correlation)", 
+                    "3. اختبارات التوزيع والاعتدالية (Normality Tests)",
+                    "4. الاحتمالات والتوزيعات (Probabilities & Z-Scores)",
+                    "5. الانحدار الاستدلالي الأساسي (Basic Regression)"
+                ] if selected_lang == "العربية" else [
+                    "Select Family...",
+                    "1. Differences (T-tests, ANOVA, Mann-Whitney)",
+                    "2. Correlation & Association",
+                    "3. Normality Tests",
+                    "4. Probabilities & Z-Scores",
+                    "5. Basic Regression"
+                ]
+                
+                family_choice = st.selectbox("اختر العائلة / Select Family:", families)
                 st.markdown("---")
 
-                # 2. تفريغ الاختبارات بناءً على العائلة المختارة (هيكل تجريبي للبدء)
-                if family_choice != families[0]:
-                    st.markdown(f"**🛠️ إعدادات الاختبار لـ / Test Settings for: {family_choice.split('.')[1]}**")
+                try:
+                    import pingouin as pg
+                    import scipy.stats as stats
+                    import plotly.express as px
+                    import numpy as np
                     
+                    # 1. عائلة الفروق (المعلمية واللامعلمية)
                     if "1" in family_choice:
-                        test_choice = st.selectbox("اختر الاختبار الدقيق:" if selected_lang == "العربية" else "Select specific test:", 
-                                     ["One-Sample T-Test", "Independent Samples T-Test", "Paired Samples T-Test", "One-Way ANOVA"])
-                        # مساحة مخصصة ستُبرمج لاحقاً لإدخال المتغيرات
-                        st.info("سيتم هنا اختيار المتغيرات وتوليد الجداول الإحصائية بضغطة زر..." if selected_lang == "العربية" else "Variables selection and result tables will appear here...")
-                    
+                        test_type = st.selectbox("اختر الاختبار الدقيق / Select Test:", ["One-Sample T-Test", "Independent T-Test / Mann-Whitney", "One-Way ANOVA / Kruskal"])
+                        if test_type == "One-Sample T-Test":
+                            col_to_test = st.selectbox("المتغير / Variable:", numeric_cols)
+                            pop_mean = st.number_input("المتوسط المفترض / Test Value:", value=0.0)
+                            if st.button("إجراء الاختبار / Run Test"):
+                                st.dataframe(pg.ttest(df_infer[col_to_test].dropna(), pop_mean), use_container_width=True)
+                        elif test_type == "Independent T-Test / Mann-Whitney":
+                            target_var = st.selectbox("المتغير التابع / Dependent Variable:", numeric_cols)
+                            group_var = st.selectbox("متغير التجميع / Grouping Variable:", categorical_cols)
+                            if st.button("إجراء الاختبار / Run"):
+                                groups = df_infer[group_var].dropna().unique()
+                                if len(groups) == 2:
+                                    g1 = df_infer[df_infer[group_var] == groups[0]][target_var].dropna()
+                                    g2 = df_infer[df_infer[group_var] == groups[1]][target_var].dropna()
+                                    st.markdown("**اختبار T (Parametric):**")
+                                    st.dataframe(pg.ttest(g1, g2), use_container_width=True)
+                                    st.markdown("**اختبار مان-ويتني (Non-Parametric):**")
+                                    st.dataframe(pg.mwu(g1, g2), use_container_width=True)
+                                else:
+                                    st.error("⚠️ متغير التجميع يجب أن يحتوي على مجموعتين فقط.")
+                        elif test_type == "One-Way ANOVA / Kruskal":
+                            target_var = st.selectbox("المتغير التابع / Dependent Variable:", numeric_cols)
+                            group_var = st.selectbox("متغير التجميع / Grouping Variable:", categorical_cols)
+                            if st.button("إجراء الاختبار / Run"):
+                                st.markdown("**تحليل التباين (ANOVA):**")
+                                st.dataframe(pg.anova(data=df_infer, dv=target_var, between=group_var), use_container_width=True)
+                                st.markdown("**اختبار كروسكال-واليس (Kruskal-Wallis):**")
+                                st.dataframe(pg.kruskal(data=df_infer, dv=target_var, between=group_var), use_container_width=True)
+
+                    # 2. عائلة الارتباط
+                    elif "2" in family_choice:
+                        var_x = st.selectbox("المتغير الأول / Variable X:", numeric_cols)
+                        var_y = st.selectbox("المتغير الثاني / Variable Y:", [c for c in numeric_cols if c != var_x])
+                        corr_method = st.radio("نوع الارتباط / Correlation Type:", ["pearson", "spearman", "kendall"])
+                        if st.button("إجراء الارتباط / Calculate"):
+                            st.dataframe(pg.corr(df_infer[var_x], df_infer[var_y], method=corr_method), use_container_width=True)
+                            fig = px.scatter(df_infer, x=var_x, y=var_y, trendline="ols", title=f"Correlation: {var_x} vs {var_y}")
+                            st.plotly_chart(fig, use_container_width=True)
+
+                    # 3. عائلة التوزيع والاعتدالية
+                    elif "3" in family_choice:
+                        st.markdown("**اختبارات شابيرو-ويلك للاعتدالية / Shapiro-Wilk Normality Test**")
+                        cols_to_test = st.multiselect("اختر المتغيرات لاختبار اعتداليتها / Select Variables:", numeric_cols, default=[numeric_cols[0]] if numeric_cols else [])
+                        if st.button("فحص التوزيع / Test Normality"):
+                            normality_results = pg.normality(df_infer[cols_to_test])
+                            st.dataframe(normality_results, use_container_width=True)
+                            if len(cols_to_test) == 1:
+                                fig = px.histogram(df_infer, x=cols_to_test[0], marginal="box", title=f"Distribution of {cols_to_test[0]}")
+                                st.plotly_chart(fig, use_container_width=True)
+
+                    # 4. عائلة الاحتمالات
+                    elif "4" in family_choice:
+                        st.markdown("**حساب القيم المعيارية والاحتمالات / Z-Scores & Probabilities**")
+                        prob_var = st.selectbox("اختر المتغير لإنشاء التوزيع الطبيعي له / Select Variable:", numeric_cols)
+                        target_val = st.number_input("أدخل القيمة لحساب احتمالها / Value to check probability for:", value=0.0)
+                        if st.button("حساب الاحتمال / Calculate Probability"):
+                            var_mean = df_infer[prob_var].mean()
+                            var_std = df_infer[prob_var].std()
+                            z_score = (target_val - var_mean) / var_std
+                            p_value = stats.norm.cdf(z_score)
+                            
+                            st.success(f"📌 المتوسط (Mean): {var_mean:.4f} | الانحراف المعياري (Std): {var_std:.4f}")
+                            st.info(f"📊 القيمة المعيارية (Z-Score): {z_score:.4f}")
+                            st.warning(f"🎯 احتمال أن تكون القيم أقل من أو تساوي ({target_val}) هو: {p_value:.4%}")
+                            st.warning(f"🎯 احتمال أن تكون القيم أكبر من ({target_val}) هو: {(1 - p_value):.4%}")
+
+                    # 5. عائلة الانحدار
                     elif "5" in family_choice:
-                        test_choice = st.selectbox("اختر نوع التوزيع/الاحتمال:" if selected_lang == "العربية" else "Select distribution/probability:", 
-                                     ["Normal Distribution (Z-Scores)", "Binomial Distribution", "Poisson Distribution", "Chi-Square Distribution"])
-                        st.info("سيتم هنا إدخال المعلمات (المتوسط، الانحراف المعياري) ورسم منحنيات الكثافة الاحتمالية..." if selected_lang == "العربية" else "Parameters input and PDF curves will be rendered here...")
-                    
-                    else:
-                        st.info("🚧 جاري برمجة خوارزميات هذه العائلة..." if selected_lang == "العربية" else "🚧 Algorithms for this family are under construction...")
+                        st.markdown("**الانحدار الخطي (بسيط / متعدد) | Linear Regression (Simple / Multiple)**")
+                        dv = st.selectbox("المتغير التابع (Y) / Dependent Variable:", numeric_cols)
+                        iv = st.multiselect("المتغيرات المستقلة (X) / Independent Variables:", [c for c in numeric_cols if c != dv])
+                        if st.button("تشغيل نموذج الانحدار / Run Regression Model") and iv:
+                            reg_results = pg.linear_regression(df_infer[iv], df_infer[dv])
+                            st.dataframe(reg_results, use_container_width=True)
+
+                except ImportError:
+                    st.error("⚠️ محركات pingouin أو scipy غير مثبتة! يرجى إضافتها لملف requirements.txt.")
+                except Exception as e:
+                    st.error(f"❌ حدث خطأ في الحساب الإحصائي: {e}")
 
 # ==========================================
 # باقي الأجنحة (مؤقتة لحين اكتمالها)
