@@ -658,6 +658,78 @@ elif page == t["desc_stats"]:
                         st.success(res_not_sig)
         else:
             st.info(chi_no_cat)
+
+# ==========================================
+# 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
+# ==========================================
+elif page == t["comprehensive_portal"]:  # تأكد أن اسم المفتاح يطابق القاموس لديك، أو استخدم الاسم مباشرة
+            # إعداد النصوص باللغتين
+            if selected_lang == "English":
+                portal_title = "📂 Comprehensive Data Portal"
+                portal_desc = "Upload your dataset here. Once uploaded, the data will be securely saved in the 'Smart Memory' and instantly available across all analytical wings (Descriptive, Inferential, Psychometrics, AI Assistant, etc.)."
+                upload_label = "📤 Upload your file (Supports CSV, Excel):"
+                success_msg = "✅ Data successfully loaded into Smart Memory! You can now move to any other wing to analyze it."
+                preview_title = "👀 Data Preview:"
+                vars_title = "📌 Detected Variables (Columns):"
+            else:
+                portal_title = "📂 بوابة البيانات الشاملة (الرفع اليدوي)"
+                portal_desc = "قم برفع ملف البيانات الخاص بك هنا (استبيانات، سلاسل زمنية، إلخ). بمجرد الرفع، ستستقر البيانات في 'الذاكرة الذكية' وتصبح متاحة فوراً للتحليل في جميع الأجنحة الأخرى (الإحصاء الوصفي، الاستدلالي، القياس النفسي، والمساعد الذكي)."
+                upload_label = "📤 ارفع ملف البيانات (يدعم صيغ CSV و Excel):"
+                success_msg = "✅ استقرت البيانات بنجاح في الذاكرة الذكية! يمكنك الآن الانتقال لأي جناح آخر للتحليل."
+                preview_title = "👀 نظرة سريعة على البيانات:"
+                vars_title = "📌 المتغيرات (الأعمدة) التي تم التعرف عليها:"
+
+            # عنوان الجناح المزين
+            st.markdown(f"<h2 style='color: #2E86C1;'>{portal_title}</h2>", unsafe_allow_html=True)
+            st.write(portal_desc)
+            st.markdown("---")
+
+            # أداة رفع الملفات السحرية
+            uploaded_file = st.file_uploader(upload_label, type=['csv', 'xlsx', 'xls'])
+
+            if uploaded_file is not None:
+                with st.spinner("جاري تهيئة البيانات وحقنها في الذاكرة الذكية..." if selected_lang == "العربية" else "Loading data into Smart Memory..."):
+                    try:
+                        import pandas as pd
+                        
+                        # التعرف الديناميكي على نوع الملف وقراءته
+                        if uploaded_file.name.endswith('.csv'):
+                            df_uploaded = pd.read_csv(uploaded_file)
+                        elif uploaded_file.name.endswith(('.xlsx', '.xls')):
+                            df_uploaded = pd.read_excel(uploaded_file)
+                        
+                        # 🚀 الضربة الهندسية: حقن البيانات في الذاكرة الذكية لتتصل بكل الأجنحة!
+                        st.session_state['smart_memory'] = df_uploaded
+                        
+                        st.success(success_msg)
+                        
+                        # عرض شكل البيانات (صفوف وأعمدة)
+                        if selected_lang == "English":
+                            st.info(f"📊 Dataset Shape: {df_uploaded.shape[0]} Rows, {df_uploaded.shape[1]} Columns.")
+                        else:
+                            st.info(f"📊 حجم البيانات: {df_uploaded.shape[0]} صف (مشاهدة)، و {df_uploaded.shape[1]} عمود (متغير).")
+
+                        # عرض المتغيرات كـ "أزرار" أو علامات أنيقة
+                        st.markdown(f"**{vars_title}**")
+                        st.write(df_uploaded.columns.tolist())
+                        
+                        # عرض عينة من البيانات ليطمئن الباحث
+                        st.markdown(f"**{preview_title}**")
+                        st.dataframe(df_uploaded.head(10), use_container_width=True)
+
+                    except Exception as e:
+                        st.error(f"❌ حدث خطأ أثناء قراءة الملف. تأكد من أن الملف غير تالف: {e}" if selected_lang == "العربية" else f"❌ Error reading file: {e}")
+
+        # ==========================================
+        # باقي الأجنحة (التي لم تبرمج بعد) تقع في هذا الفخ
+        # ==========================================
+        else:
+            st.markdown(f"<h2 style='color: #7F8C8D; text-align: center;'>{page}</h2>", unsafe_allow_html=True)
+            if selected_lang == "English":
+                st.info("🚧 Algorithms are currently being linked, and this wing is under construction...")
+            else:
+                st.info("🚧 جاري ربط الخوارزميات وبناء هذا الجناح...")
+
 # ==========================================
 # باقي الأجنحة (مؤقتة لحين اكتمالها)
 # ==========================================
