@@ -635,7 +635,7 @@ elif page == t["desc_stats"]:
            var_2 = col2.selectbox(var2_label, cat_cols)
                             
            if st.button(chi_btn):
-               if var_1 == var_2:
+                   if var_1 == var_2:
                    st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
                else:
                    # بناء الجدول المزدوج
