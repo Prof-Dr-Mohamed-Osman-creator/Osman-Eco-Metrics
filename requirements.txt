@@ -7,9 +7,6 @@ scipy
 requests
 google-generativeai
 matplotlib
-scipy==1.11.3
-plotly==5.17.0
-matplotlib==3.8.0
 
 
 # 1. محركات البيانات والجداول
