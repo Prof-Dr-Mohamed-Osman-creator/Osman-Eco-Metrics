@@ -593,7 +593,8 @@ elif page == t["desc_stats"]:
 # ==========================================
         # 🎲 الطبق الجانبي: الجدول المزدوج واختبار كاي (للمتغيرات الوصفية)
         # ==========================================
-            st.markdown("---")
+            st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
+            st.write(chi_desc)
             
             # نصوص اللغتين لاختبار كاي
             if selected_lang == "English":
