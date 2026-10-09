@@ -714,6 +714,78 @@ elif "Comprehensive" in page or "الشاملة" in page:
                         st.error(f"❌ حدث خطأ أثناء قراءة الملف. تأكد من أن الملف غير تالف: {e}" if selected_lang == "العربية" else f"❌ Error reading file: {e}")
 
 # ==========================================
+# 📊 جناح الإحصاء الاستدلالي والاحتمالات (Inferential Statistics & Probabilities)
+# ==========================================
+elif "Inferential" in page or "الاستدلالي" in page:
+            if selected_lang == "English":
+                st.markdown("<h2 style='color: #2E86C1;'>📊 Inferential Statistics & Probabilities</h2>", unsafe_allow_html=True)
+                st.write("Advanced statistical laboratory for hypothesis testing, distributions, and relationship modeling.")
+            else:
+                st.markdown("<h2 style='color: #2E86C1;'>📊 الإحصاء الاستدلالي والاحتمالات</h2>", unsafe_allow_html=True)
+                st.write("المختبر الإحصائي المتقدم لاختبار الفرضيات، التوزيعات الاحتمالية، ونمذجة العلاقات.")
+            st.markdown("---")
+
+            # التحقق من وجود بيانات في الذاكرة الذكية
+            if 'smart_memory' not in st.session_state or not isinstance(st.session_state['smart_memory'], pd.DataFrame) or st.session_state['smart_memory'].empty:
+                if selected_lang == "English":
+                    st.warning("⚠️ Smart Memory is empty! Please fetch data via 'Harvest Wing' or upload a file in the 'Data Portal' first.")
+                else:
+                    st.warning("⚠️ الذاكرة الذكية فارغة! يرجى جلب البيانات من 'رادار الحصاد' أو رفع ملف عبر 'بوابة البيانات الشاملة' أولاً.")
+            else:
+                df_infer = st.session_state['smart_memory'].copy()
+                st.success("✅ البيانات مستقرة وجاهزة للتحليل الاستدلالي!" if selected_lang == "العربية" else "✅ Data is ready for inferential analysis!")
+                
+                # استخراج الأعمدة الرقمية والفئوية لتسهيل الاختيار على الباحث
+                numeric_cols = df_infer.select_dtypes(include=['float64', 'int64']).columns.tolist()
+                categorical_cols = df_infer.select_dtypes(include=['object', 'category']).columns.tolist()
+
+                st.markdown("### 🧬 تحديد مسار التحليل / Analysis Path")
+                
+                # 1. اختيار العائلة الإحصائية
+                if selected_lang == "English":
+                    families = [
+                        "Select Family...",
+                        "1. Parametric Tests (T-tests, ANOVA)", 
+                        "2. Non-Parametric Tests (Mann-Whitney, Kruskal)",
+                        "3. Correlation & Association", 
+                        "4. Normality & Distribution Tests",
+                        "5. Probabilities & Distributions",
+                        "6. Basic Inferential Regression"
+                    ]
+                    family_choice = st.selectbox("Select Statistical Family:", families)
+                else:
+                    families = [
+                        "اختر العائلة الإحصائية...",
+                        "1. اختبارات الفروق المعلمية (T-tests, ANOVA)", 
+                        "2. الاختبارات اللامعلمية (Mann-Whitney, Kruskal)",
+                        "3. الارتباط والتوافق (Correlation)", 
+                        "4. اختبارات التوزيع والاعتدالية (Normality)",
+                        "5. الاحتمالات والتوزيعات (Probabilities)",
+                        "6. الانحدار الاستدلالي الأساسي (Regression)"
+                    ]
+                    family_choice = st.selectbox("اختر العائلة الإحصائية:", families)
+
+                st.markdown("---")
+
+                # 2. تفريغ الاختبارات بناءً على العائلة المختارة (هيكل تجريبي للبدء)
+                if family_choice != families[0]:
+                    st.markdown(f"**🛠️ إعدادات الاختبار لـ / Test Settings for: {family_choice.split('.')[1]}**")
+                    
+                    if "1" in family_choice:
+                        test_choice = st.selectbox("اختر الاختبار الدقيق:" if selected_lang == "العربية" else "Select specific test:", 
+                                     ["One-Sample T-Test", "Independent Samples T-Test", "Paired Samples T-Test", "One-Way ANOVA"])
+                        # مساحة مخصصة ستُبرمج لاحقاً لإدخال المتغيرات
+                        st.info("سيتم هنا اختيار المتغيرات وتوليد الجداول الإحصائية بضغطة زر..." if selected_lang == "العربية" else "Variables selection and result tables will appear here...")
+                    
+                    elif "5" in family_choice:
+                        test_choice = st.selectbox("اختر نوع التوزيع/الاحتمال:" if selected_lang == "العربية" else "Select distribution/probability:", 
+                                     ["Normal Distribution (Z-Scores)", "Binomial Distribution", "Poisson Distribution", "Chi-Square Distribution"])
+                        st.info("سيتم هنا إدخال المعلمات (المتوسط، الانحراف المعياري) ورسم منحنيات الكثافة الاحتمالية..." if selected_lang == "العربية" else "Parameters input and PDF curves will be rendered here...")
+                    
+                    else:
+                        st.info("🚧 جاري برمجة خوارزميات هذه العائلة..." if selected_lang == "العربية" else "🚧 Algorithms for this family are under construction...")
+
+# ==========================================
 # باقي الأجنحة (مؤقتة لحين اكتمالها)
 # ==========================================
 else:
