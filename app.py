@@ -656,8 +656,8 @@ if len(cat_cols) >= 2:
                                         st.warning(res_sig)
                                     else:
                                         st.success(res_not_sig)
-        else:
-            st.info(chi_no_cat)
+                                    else:
+                                        st.info(chi_no_cat)
 
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
