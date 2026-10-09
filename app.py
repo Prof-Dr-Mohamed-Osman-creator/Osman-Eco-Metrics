@@ -823,8 +823,8 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                     if res_anova['p_unc'].values[0] < 0.05:                                        st.warning("✨ نتيجة الأنوڤا دالة إحصائياً! إليك اختبار (توكي) لتحديد المجموعات المختلفة:")
                                     res_tukey = pg.pairwise_tukey(data=df_infer, dv=target_var, between=group_var)
                                     st.dataframe(res_tukey, use_container_width=True)
-                                    else:
-                                        st.info("💡 لا توجد فروق دالة إحصائياً بين المجموعات الكلية، لذا لا حاجة لإجراء اختبارات بعدية (Post-Hoc).")
+                                else:
+                                    st.info("💡 لا توجد فروق دالة إحصائياً بين المجموعات الكلية، لذا لا حاجة لإجراء اختبارات بعدية (Post-Hoc).")
                                 else:
                                     st.warning("⚠️ المتغير الفئوي يحتوي على مجموعتين أو أقل، يُفضل استخدام اختبار T لعينتين مستقلتين.")
                                     
