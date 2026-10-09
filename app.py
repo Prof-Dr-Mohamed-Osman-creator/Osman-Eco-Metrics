@@ -342,10 +342,11 @@ elif page == t["harvest"]:
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
-    elif page == t["ai_assistant"]:
-    # إعداد نصوص اللغتين لمكتب المستشار
+   elif page == t["ai_assistant"]:
+    # إعداد نصوص اللغتين لمكتب المستشار (هذا السطر يجب أن يكون مزاحاً للداخل)
     if selected_lang == "English":
         ai_title = "✨ Gemini AI Assistant & Report Generation"
+        # ... باقي الكود ...
         ai_desc = "Welcome to the AI Office! Provide your secure API Key to let the algorithms read the 'Smart Memory' and draft professional eco-dynamic reports."
         key_label = "🔑 Safe Vault: Enter Gemini API Key (Stored securely during session):"
         context_label = "📝 What should the report focus on? (e.g., Analyze the economic growth trends...)"
