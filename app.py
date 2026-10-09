@@ -311,7 +311,7 @@ elif page == t["harvest"]:
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
-elif app_mode == "✨ المساعد الذكي وصياغة التقارير (Gemini AI)":
+elif app_mode == "✨ (Gemini AI)":
     st.markdown("<h1 style='color: #9B59B6;'>✨ المساعد الذكي (Gemini AI) وصياغة التقارير</h1>", unsafe_allow_html=True)
     
     if st.session_state['smart_memory'] is not None:
