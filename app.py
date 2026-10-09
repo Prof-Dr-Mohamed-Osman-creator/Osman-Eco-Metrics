@@ -662,8 +662,8 @@ elif page == t["desc_stats"]:
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
 # ==========================================
-elif page == t["comprehensive_portal"]:  # تأكد أن اسم المفتاح يطابق القاموس لديك، أو استخدم الاسم مباشرة
-            # إعداد النصوص باللغتين
+elif page == "Comprehensive Data Portal" or page == "بوابة البيانات الشاملة (استبيانات وسلاسل)":
+    # إعداد النصوص باللغتين
             if selected_lang == "English":
                 portal_title = "📂 Comprehensive Data Portal"
                 portal_desc = "Upload your dataset here. Once uploaded, the data will be securely saved in the 'Smart Memory' and instantly available across all analytical wings (Descriptive, Inferential, Psychometrics, AI Assistant, etc.)."
