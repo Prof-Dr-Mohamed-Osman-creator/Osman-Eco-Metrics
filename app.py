@@ -825,8 +825,8 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                     st.dataframe(res_tukey, use_container_width=True)
                                 else:
                                     st.info("💡 لا توجد فروق دالة إحصائياً بين المجموعات الكلية، لذا لا حاجة لإجراء اختبارات بعدية (Post-Hoc).")
-                                else:
-                                    st.warning("⚠️ المتغير الفئوي يحتوي على مجموعتين أو أقل، يُفضل استخدام اختبار T لعينتين مستقلتين.")
+                            else:
+                                st.warning("⚠️ المتغير الفئوي يحتوي على مجموعتين أو أقل، يُفضل استخدام اختبار T لعينتين مستقلتين.")
                                     
                        # 5. تحليل التباين الثنائي (Two-Way ANOVA)
                         elif "Two-Way ANOVA" in para_test:
