@@ -871,7 +871,7 @@ elif "Inferential" in page or "الاستدلالي" in page:
                             # 3. زر سحري لعرض التقرير الكلاسيكي الكامل (مثل EViews و SPSS)
                             with st.expander("📄 عرض التقرير القياسي الكامل (Full EViews/SPSS Style Summary)"):
                                 st.text(model.summary().as_text())
-except ImportError:
+                except ImportError:
                     st.error("⚠️ محركات pingouin أو scipy أو statsmodels غير مثبتة! يرجى إضافتها لملف requirements.txt.")
                 except Exception as e:
                     st.error(f"❌ حدث خطأ في الحساب الإحصائي: {e}")
