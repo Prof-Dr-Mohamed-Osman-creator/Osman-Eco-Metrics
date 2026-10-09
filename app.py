@@ -847,6 +847,106 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                                        dv=target_var, 
                                                        between=[group_var1, group_var2])
                                 st.dataframe(res_two_way, use_container_width=True)
+# ==========================================
+# 2. عائلة الاختبارات اللامعلمية (Non-Parametric Tests)
+# ==========================================
+                    elif "2" in family_choice:
+                        st.markdown("### 🧮 مختبر الاختبارات اللامعلمية (Non-Parametric Tests)")
+                        st.info("تُستخدم كبديل قوي عندما لا تتبع البيانات التوزيع الطبيعي، أو للعينات الصغيرة، والمتغيرات الرتبية والفئوية.")
+                        
+                        non_para_test = st.selectbox("🎯 اختر الاختبار اللامعلمي الدقيق / Select specific test:", [
+                            "1. اختبار مان-ويتني (Mann-Whitney U) - بديل T لعينتين مستقلتين",
+                            "2. اختبار ويلكوكسون (Wilcoxon Signed-Rank) - بديل T للعينات المترابطة",
+                            "3. اختبار كروسكال-واليس (Kruskal-Wallis) - بديل الأنوڤا للعينات المستقلة",
+                            "4. اختبار فريدمان (Friedman Test) - للقياسات المتكررة / العينات المترابطة",
+                            "5. اختبار مربع كاي (Chi-Square) - للاستقلالية والتوافق"
+                        ])
+                        
+                        st.markdown("---")
+                        
+                        # 1. اختبار مان-ويتني
+                        if "Mann-Whitney" in non_para_test:
+                            target_var = st.selectbox("المتغير التابع (الكمي) / Dependent Variable:", numeric_cols)
+                            group_var = st.selectbox("متغير التجميع (الفئوي - مجموعتين) / Grouping Variable:", categorical_cols)
+                            if st.button("إجراء اختبار مان-ويتني / Run Test"):
+                                groups = df_infer[group_var].dropna().unique()
+                                if len(groups) == 2:
+                                    g1 = df_infer[df_infer[group_var] == groups[0]][target_var].dropna()
+                                    g2 = df_infer[df_infer[group_var] == groups[1]][target_var].dropna()
+                                    st.success(f"📌 مقارنة الرتب لـ [{target_var}] بين: ({groups[0]}) و ({groups[1]})")
+                                    res_mwu = pg.mwu(g1, g2)
+                                    st.dataframe(res_mwu, use_container_width=True)
+                                else:
+                                    st.error("⚠️ يجب أن يحتوي متغير التجميع على مجموعتين فقط لهذا الاختبار!")
+                        
+                        # 2. اختبار ويلكوكسون (للعينات المترابطة)
+                        elif "Wilcoxon" in non_para_test:
+                            var_pre = st.selectbox("المتغير الأول (مثال: قبل) / First Variable:", numeric_cols)
+                            var_post = st.selectbox("المتغير الثاني (مثال: بعد) / Second Variable:", [c for c in numeric_cols if c != var_pre])
+                            if st.button("إجراء اختبار ويلكوكسون / Run Test"):
+                                df_paired = df_infer[[var_pre, var_post]].dropna()
+                                res_wilcoxon = pg.wilcoxon(df_paired[var_pre], df_paired[var_post])
+                                st.success(f"📌 مقارنة الفروق المترابطة بين [{var_pre}] و [{var_post}]")
+                                st.dataframe(res_wilcoxon, use_container_width=True)
+                        
+                        # 3. اختبار كروسكال-واليس (أكثر من مجموعتين)
+                        elif "Kruskal-Wallis" in non_para_test:
+                            target_var = st.selectbox("المتغير التابع (الكمي) / Dependent Variable:", numeric_cols)
+                            group_var = st.selectbox("متغير التجميع (الفئوي) / Grouping Variable:", categorical_cols)
+                            if st.button("إجراء اختبار كروسكال-واليس / Run Test"):
+                                groups_count = df_infer[group_var].nunique()
+                                if groups_count > 2:
+                                    st.success(f"📌 تحليل الفروق اللامعلمية لـ [{target_var}] عبر {groups_count} مجموعات في [{group_var}]")
+                                    res_kw = pg.kruskal(data=df_infer, dv=target_var, between=group_var)
+                                    st.markdown("**📊 جدول كروسكال-واليس (Kruskal-Wallis H)**")
+                                    st.dataframe(res_kw, use_container_width=True)
+                                    
+                                    # اختبارات ما بعد التباين اللامعلمية (Post-Hoc Pairwise)
+                                    if res_kw['p-unc'][0] < 0.05:
+                                        st.warning("✨ توجد فروق دالة إحصائياً! إليك المقارنات الثنائية (Pairwise Mann-Whitney) لتحديد مصدر الاختلاف:")
+                                        res_pw = pg.pairwise_tests(data=df_infer, dv=target_var, between=group_var, parametric=False)
+                                        st.dataframe(res_pw, use_container_width=True)
+                                else:
+                                    st.warning("⚠️ عدد المجموعات 2 أو أقل، يُفضل استخدام اختبار مان-ويتني.")
+
+                        # 4. اختبار فريدمان
+                        elif "Friedman" in non_para_test:
+                            st.write("يُستخدم لمقارنة 3 متغيرات مترابطة أو أكثر (مثل تقييمات لـ 3 سنوات متتالية لنفس العينة).")
+                            selected_vars = st.multiselect("اختر 3 متغيرات كمية على الأقل / Select Variables:", numeric_cols)
+                            if st.button("إجراء اختبار فريدمان / Run Test"):
+                                if len(selected_vars) >= 3:
+                                    import scipy.stats as stats
+                                    import pandas as pd
+                                    clean_data = df_infer[selected_vars].dropna()
+                                    args = [clean_data[col] for col in selected_vars]
+                                    stat, p_value = stats.friedmanchisquare(*args)
+                                    
+                                    res_friedman = pd.DataFrame({
+                                        "الاختبار": ["Friedman Chi-Square"],
+                                        "قيمة الإحصاء (Statistic)": [stat],
+                                        "مستوى الدلالة (p-value)": [p_value]
+                                    })
+                                    st.success(f"📌 اختبار فريدمان للمتغيرات: {', '.join(selected_vars)}")
+                                    st.dataframe(res_friedman, use_container_width=True)
+                                else:
+                                    st.error("⚠️ يرجى اختيار 3 متغيرات على الأقل لإجراء هذا الاختبار.")
+                        
+                        # 5. اختبار مربع كاي للاستقلالية
+                        elif "Chi-Square" in non_para_test:
+                            st.write("يقيس قوة الارتباط والاستقلالية بين متغيرين فئويين (Categorical).")
+                            cat_var1 = st.selectbox("المتغير الفئوي الأول (صفوف) / Row Variable:", categorical_cols)
+                            cat_var2 = st.selectbox("المتغير الفئوي الثاني (أعمدة) / Column Variable:", [c for c in categorical_cols if c != cat_var1])
+                            if st.button("إجراء اختبار مربع كاي / Run Chi-Square"):
+                                expected, observed, stats_res = pg.chi2_independence(data=df_infer, x=cat_var1, y=cat_var2)
+                                st.success(f"📌 اختبار الاستقلالية بين [{cat_var1}] و [{cat_var2}]")
+                                
+                                st.markdown("**📊 نتائج الاختبار ومستوى الدلالة (Test Statistics)**")
+                                st.dataframe(stats_res, use_container_width=True)
+                                
+                                st.markdown("**📉 جدول التكرارات المشاهدة (Observed Frequencies)**")
+                                st.dataframe(observed, use_container_width=True)  
+                    
+                    
                     # 2. عائلة الارتباط
                     elif "2" in family_choice:
                         var_x = st.selectbox("المتغير الأول / Variable X:", numeric_cols)
