@@ -637,7 +637,7 @@ elif page == t["desc_stats"]:
            if st.button(chi_btn):
                    if var_1 == var_2:
                        st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
-               else:
+                   else:
                    # بناء الجدول المزدوج
                    crosstab_df = pd.crosstab(df[var_1], df[var_2])
                    st.markdown(f"**{res_crosstab}**")
