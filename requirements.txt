@@ -7,3 +7,53 @@ scipy
 requests
 google-generativeai
 matplotlib
+# 1. محركات البيانات والجداول
+pandas
+numpy
+openpyxl
+xlrd
+
+# 2. محركات الرسوم البيانية
+streamlit
+plotly
+
+# 3. محركات الذكاء الاصطناعي
+google-generativeai
+
+# 4. محركات النصوص والوثائق (Word & PDF)
+python-docx
+pdfplumber
+PyPDF2
+
+# 5. محركات الصور
+Pillow
+
+# 6. محركات الإحصاء والاقتصاد القياسي (للأجنحة القادمة)
+scipy
+statsmodels
+scikit-learn
+# 1. محركات البيانات والجداول
+pandas
+numpy
+openpyxl
+xlrd
+
+# 2. محركات الرسوم البيانية
+streamlit
+plotly
+
+# 3. محركات الذكاء الاصطناعي
+google-generativeai
+
+# 4. محركات النصوص والوثائق (Word & PDF)
+python-docx
+pdfplumber
+PyPDF2
+
+# 5. محركات الصور
+Pillow
+
+# 6. محركات الإحصاء والاقتصاد القياسي (للأجنحة القادمة)
+scipy
+statsmodels
+scikit-learn
