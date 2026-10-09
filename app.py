@@ -308,6 +308,37 @@ elif page == t["harvest"]:
                         st.error(f"حدث خطأ أثناء جلب البيانات: {e}")
             else:
                 st.warning("يرجى اختيار دولة واحدة وسلعة واحدة على الأقل.")
+                # ==========================================
+    # 📈 الشاشة البصرية: رسم البيانات المحصودة مباشرة
+    # ==========================================
+    if 'smart_memory' in st.session_state and not st.session_state['smart_memory'].empty:
+        st.markdown("---")
+        st.markdown("<h3 style='color: #2E86C1;'>📈 النظرة البصرية السريعة / Quick Data Visualization</h3>", unsafe_allow_html=True)
+        
+        df_harvested = st.session_state['smart_memory']
+        
+        # استخراج الأعمدة الرقمية للرسم (المحور الرأسي)
+        numeric_cols_harvest = df_harvested.select_dtypes(include=['float64', 'int64']).columns.tolist()
+        # محاولة إيجاد عمود يعبر عن الزمن (المحور الأفقي)
+        time_cols = [col for col in df_harvested.columns if any(keyword in col.lower() for keyword in ['year', 'date', 'time', 'سنة', 'عام', 'تاريخ'])]
+        x_axis_default = time_cols[0] if time_cols else df_harvested.columns[0]
+
+        if numeric_cols_harvest:
+            hc1, hc2 = st.columns(2)
+            x_axis = hc1.selectbox("📍 المحور الأفقي (الزمن/الفئة) / X-Axis:", df_harvested.columns.tolist(), index=df_harvested.columns.tolist().index(x_axis_default))
+            y_axis = hc2.selectbox("📊 المحور الرأسي (القيمة) / Y-Axis:", numeric_cols_harvest)
+            
+            fig_harvest = px.line(df_harvested, x=x_axis, y=y_axis, markers=True, 
+                                  title=f"Trend of {y_axis} over {x_axis}" if selected_lang == "English" else f"اتجاه ({y_axis}) عبر ({x_axis})")
+            
+            # تحديد المحاور بدقة
+            fig_harvest.update_layout(
+                xaxis_title=x_axis,
+                yaxis_title=y_axis,
+                plot_bgcolor='rgba(240, 242, 246, 0.5)'
+            )
+            fig_harvest.update_traces(line_color='#E74C3C') # لون أحمر أنيق للرادار
+            st.plotly_chart(fig_harvest, use_container_width=True)
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
