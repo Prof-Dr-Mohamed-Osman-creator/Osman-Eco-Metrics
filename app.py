@@ -623,38 +623,38 @@ elif page == t["desc_stats"]:
             res_sig = "النتيجة: توجد علاقة معنوية بين المتغيرين (نرفض فرض العدم) ❌"
             res_not_sig = "النتيجة: لا توجد علاقة معنوية بين المتغيرين (لا نرفض فرض العدم) ✅"
 
-                        st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
-                        st.write(chi_desc)
+            st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
+            st.write(chi_desc)
+            
+            cat_cols = df_desc.columns.tolist()
+            
+            if len(cat_cols) >= 2:
+                col1, col2 = st.columns(2)
+                var_1 = col1.selectbox(var1_label, cat_cols)
+                var_2 = col2.selectbox(var2_label, cat_cols)
+                
+                if st.button(chi_btn):
+                    if var_1 == var_2:
+                        st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
+                    else:
+                        crosstab_df = pd.crosstab(df_desc[var_1], df_desc[var_2])
+                        st.markdown(f"**{res_crosstab}**")
+                        st.dataframe(crosstab_df, use_container_width=True)
                         
-                        cat_cols = df_desc.columns.tolist()
+                        import scipy.stats as stats
+                        chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
                         
-                        if len(cat_cols) >= 2:
-                            col1, col2 = st.columns(2)
-                            var_1 = col1.selectbox(var1_label, cat_cols)
-                            var_2 = col2.selectbox(var2_label, cat_cols)
-                            
-                            if st.button(chi_btn):
-                                if var_1 == var_2:
-                                    st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
-                                else:
-                                    crosstab_df = pd.crosstab(df_desc[var_1], df_desc[var_2])
-                                    st.markdown(f"**{res_crosstab}**")
-                                    st.dataframe(crosstab_df, use_container_width=True)
-                                    
-                                    import scipy.stats as stats
-                                    chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
-                                    
-                                    k1, k2, k3 = st.columns(3)
-                                    k1.metric(res_stat, f"{chi2:.4f}")
-                                    k2.metric(res_pval, f"{p_val_chi:.4f}")
-                                    k3.metric(res_dof, f"{dof}")
-                                    
-                                    if p_val_chi < 0.05:
-                                        st.warning(res_sig)
-                                    else:
-                                        st.success(res_not_sig)
+                        k1, k2, k3 = st.columns(3)
+                        k1.metric(res_stat, f"{chi2:.4f}")
+                        k2.metric(res_pval, f"{p_val_chi:.4f}")
+                        k3.metric(res_dof, f"{dof}")
+                        
+                        if p_val_chi < 0.05:
+                            st.warning(res_sig)
                         else:
-                            st.info(chi_no_cat)
+                            st.success(res_not_sig)
+            else:
+                st.info(chi_no_cat)
 
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
