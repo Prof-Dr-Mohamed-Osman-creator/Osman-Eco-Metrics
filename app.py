@@ -310,26 +310,25 @@ elif page == t["harvest"]:
                 # هذا السطر يجب أن يكون موجوداً ومزاحاً للداخل تحت else
                 st.error("لم يتم العثور على بيانات مطابقة." if selected_lang == "العربية" else "No matching data found.")
 # ==========================================
-        # 📈 الشاشة البصرية: رسم البيانات المحصودة مباشرة
-        # ==========================================
+# 📈 الشاشة البصرية: رسم البيانات المحصودة مباشرة
+# ==========================================
         if 'smart_memory' in st.session_state and isinstance(st.session_state['smart_memory'], pd.DataFrame) and not st.session_state['smart_memory'].empty:
+            import plotly.express as px  # 👈 الاستدعاء السحري الذي كان مفقوداً!
+            import pandas as pd
+            
             st.markdown("---")
             st.markdown("<h3 style='color: #2E86C1;'>📈 النظرة البصرية السريعة / Quick Data Visualization</h3>", unsafe_allow_html=True)
             
             df_harvested = st.session_state['smart_memory'].copy()
             
-            # 🚀 المحول الذكي الإجباري: اكتشاف الأرقام المتخفية وتجاهل الشوائب
+            # المحول الذكي الإجباري: لاكتشاف الأرقام المتخفية
             for col in df_harvested.columns:
-                # محاولة التحويل الإجباري: أي نص شاذ (مثل ..) يتحول إلى NaN دون إيقاف الكود
                 num_col = pd.to_numeric(df_harvested[col], errors='coerce')
-                
-                # إذا وجدنا أن العمود يحتوي فعلاً على أرقام صحيحة بعد التحويل
                 if num_col.notna().sum() > 0:
-                    # نتأكد أنه ليس عموداً نصياً بالكامل (كالأسماء) عبر التأكد أن نسبة الأرقام تتجاوز 30%
-                    if num_col.notna().sum() >= (df_harvested[col].notna().sum() * 0.3):
+                    if num_col.notna().sum() >= (len(df_harvested) * 0.3):
                         df_harvested[col] = num_col
 
-            # استخراج الأعمدة الرقمية بعد التنظيف الإجباري
+            # استخراج الأعمدة
             numeric_cols_harvest = df_harvested.select_dtypes(include=['float64', 'int64']).columns.tolist()
             time_cols = [col for col in df_harvested.columns if any(keyword in col.lower() for keyword in ['year', 'date', 'time', 'سنة', 'عام', 'تاريخ'])]
             x_axis_default = time_cols[0] if time_cols else df_harvested.columns[0]
@@ -359,27 +358,32 @@ elif page == t["harvest"]:
                 
                 chart_title = f"Data Visualization: {final_y_title} vs {final_x_title}" if selected_lang == "English" else f"التمثيل البصري: ({final_y_title}) مقابل ({final_x_title})"
 
-                if "Line" in chart_choice or "خطي" in chart_choice:
-                    fig_harvest = px.line(df_harvested, x=x_axis, y=y_axis, markers=True, title=chart_title)
-                    fig_harvest.update_traces(line_color='#E74C3C')
-                elif "Bar" in chart_choice or "أعمدة" in chart_choice:
-                    fig_harvest = px.bar(df_harvested, x=x_axis, y=y_axis, title=chart_title)
-                    fig_harvest.update_traces(marker_color='#E74C3C')
-                elif "Scatter" in chart_choice or "انتشار" in chart_choice:
-                    fig_harvest = px.scatter(df_harvested, x=x_axis, y=y_axis, title=chart_title)
-                    fig_harvest.update_traces(marker_color='#E74C3C', marker_size=10)
-                elif "Area" in chart_choice or "مساحة" in chart_choice:
-                    fig_harvest = px.area(df_harvested, x=x_axis, y=y_axis, title=chart_title)
-                    fig_harvest.update_traces(line_color='#E74C3C')
-                elif "Pie" in chart_choice or "دائرة" in chart_choice:
-                    fig_harvest = px.pie(df_harvested, names=x_axis, values=y_axis, title=chart_title, hole=0.3)
-                
-                if "Pie" not in chart_choice and "دائرة" not in chart_choice:
-                    fig_harvest.update_layout(xaxis_title=final_x_title, yaxis_title=final_y_title, plot_bgcolor='rgba(240, 242, 246, 0.5)')
-                
-                st.plotly_chart(fig_harvest, use_container_width=True)
+                try:
+                    # رسم الخرائط
+                    if "Line" in chart_choice or "خطي" in chart_choice:
+                        fig_harvest = px.line(df_harvested, x=x_axis, y=y_axis, markers=True, title=chart_title)
+                        fig_harvest.update_traces(line_color='#E74C3C')
+                    elif "Bar" in chart_choice or "أعمدة" in chart_choice:
+                        fig_harvest = px.bar(df_harvested, x=x_axis, y=y_axis, title=chart_title)
+                        fig_harvest.update_traces(marker_color='#E74C3C')
+                    elif "Scatter" in chart_choice or "انتشار" in chart_choice:
+                        fig_harvest = px.scatter(df_harvested, x=x_axis, y=y_axis, title=chart_title)
+                        fig_harvest.update_traces(marker_color='#E74C3C', marker_size=10)
+                    elif "Area" in chart_choice or "مساحة" in chart_choice:
+                        fig_harvest = px.area(df_harvested, x=x_axis, y=y_axis, title=chart_title)
+                        fig_harvest.update_traces(line_color='#E74C3C')
+                    elif "Pie" in chart_choice or "دائرة" in chart_choice:
+                        fig_harvest = px.pie(df_harvested, names=x_axis, values=y_axis, title=chart_title, hole=0.3)
+                    
+                    if "Pie" not in chart_choice and "دائرة" not in chart_choice:
+                        fig_harvest.update_layout(xaxis_title=final_x_title, yaxis_title=final_y_title, plot_bgcolor='rgba(240, 242, 246, 0.5)')
+                    
+                    st.plotly_chart(fig_harvest, use_container_width=True)
+                except Exception as e:
+                    st.error(f"حدث خطأ أثناء محاولة الرسم البياني: {e}")
             else:
                 st.warning("⚠️ لا توجد بيانات رقمية صالحة للرسم في هذا الجدول." if selected_lang == "العربية" else "⚠️ No valid numeric data found for visualization.")
+
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
