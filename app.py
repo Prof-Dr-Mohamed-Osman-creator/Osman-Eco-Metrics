@@ -627,7 +627,7 @@ elif page == t["desc_stats"]:
         st.write(chi_desc)
                         
         # استخراج الأعمدة الوصفية (نصوص أو فئات) #
-        cat_cols = df_desc.columns.tolist()
+           cat_cols = df_desc.columns.tolist()
                         
         if len(cat_cols) >= 2:
            col1, col2 = st.columns(2)
