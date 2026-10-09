@@ -414,7 +414,7 @@ elif page == t["desc_stats"]:
     st.markdown(f"<h2 style='color: #2E86C1;'>{header_title}</h2>", unsafe_allow_html=True)
     st.write(header_desc)
     
-    if 'smart_memory' not in st.session_state or st.session_state['smart_memory'].empty:
+    if 'smart_memory' not in st.session_state or not isinstance(st.session_state['smart_memory'], pd.DataFrame) or st.session_state['smart_memory'].empty:
         st.info(empty_msg)
     else:
         df = st.session_state['smart_memory']
