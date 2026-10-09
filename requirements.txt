@@ -6,3 +6,4 @@ statsmodels
 scipy
 requests
 google-generativeai
+matplotlib
