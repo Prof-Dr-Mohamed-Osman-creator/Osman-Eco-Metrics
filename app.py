@@ -628,7 +628,7 @@ elif page == t["desc_stats"]:
                             
             # استخراج الأعمدة الوصفية (نصوص أو فئات) #
             cat_cols = df_desc.columns.tolist()
-if len(cat_cols) >= 2:
+        if len(cat_cols) >= 2:
                             col1, col2 = st.columns(2)
                             var_1 = col1.selectbox(var1_label, cat_cols)
                             var_2 = col2.selectbox(var2_label, cat_cols)
@@ -656,8 +656,8 @@ if len(cat_cols) >= 2:
                                         st.warning(res_sig)
                                     else:
                                         st.success(res_not_sig)
-else:
-    st.info(chi_no_cat)
+        else:
+            st.info(chi_no_cat)
 
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
