@@ -720,16 +720,6 @@ elif page == t["comprehensive_portal"]:  # تأكد أن اسم المفتاح �
                     except Exception as e:
                         st.error(f"❌ حدث خطأ أثناء قراءة الملف. تأكد من أن الملف غير تالف: {e}" if selected_lang == "العربية" else f"❌ Error reading file: {e}")
 
-        # ==========================================
-        # باقي الأجنحة (التي لم تبرمج بعد) تقع في هذا الفخ
-        # ==========================================
-        else:
-            st.markdown(f"<h2 style='color: #7F8C8D; text-align: center;'>{page}</h2>", unsafe_allow_html=True)
-            if selected_lang == "English":
-                st.info("🚧 Algorithms are currently being linked, and this wing is under construction...")
-            else:
-                st.info("🚧 جاري ربط الخوارزميات وبناء هذا الجناح...")
-
 # ==========================================
 # باقي الأجنحة (مؤقتة لحين اكتمالها)
 # ==========================================
