@@ -100,7 +100,7 @@ st.sidebar.success("Designed by: Prof. Dr. Mohamed Osman (Egypt) © 2026")
 # ==========================================
 # 🏠 الجناح الرئيسي
 # ==========================================
-if app_mode == "🏠 الصفحة الرئيسية":
+if page == t["home"]:
     st.markdown("<h1 style='color: #2E86C1; text-align: center;'>📊 Osman Eco-Metrics System</h1>", unsafe_allow_html=True)
     st.markdown("<h3 style='color: #34495E; text-align: center;'>المدرسة الإيكو-ديناميكية الرقمية | مختبر القياس المتعدد الشامل</h3>", unsafe_allow_html=True)
     st.info("👈 يرجى اختيار جناح التحليل من القائمة الجانبية لتفعيل الخوارزميات.")
@@ -108,7 +108,7 @@ if app_mode == "🏠 الصفحة الرئيسية":
 # ==========================================
 # 🕸️ رادار الحصاد الآلي (النسخة الشاملة الحية)
 # ==========================================
-elif app_mode == "🕸️ رادار الحصاد الآلي للبيانات":
+elif page == t["harvest"]:
     st.markdown("<h1 style='color: #E67E22;'>🕸️ رادار الحصاد الآلي للبيانات</h1>", unsafe_allow_html=True)
     st.write("🌍 **وضع الاستكشاف الشامل:** الرادار متصل الآن بآلاف المتغيرات لجميع دول العالم.")
     
