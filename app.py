@@ -318,15 +318,18 @@ elif page == t["harvest"]:
             
             df_harvested = st.session_state['smart_memory'].copy()
             
-            # 🚀 الحل السحري: إجبار الأعمدة التي تحتوي على أرقام نصية للتحول إلى أرقام حقيقية
+            # 🚀 المحول الذكي الإجباري: اكتشاف الأرقام المتخفية وتجاهل الشوائب
             for col in df_harvested.columns:
-                try:
-                    # ignore=True يمنع توقف البرنامج إذا وجد نصوصاً لا يمكن تحويلها
-                    df_harvested[col] = pd.to_numeric(df_harvested[col])
-                except:
-                    pass
-            
-            # استخراج الأعمدة الرقمية (الآن ستنجح الخوارزمية في رؤيتها)
+                # محاولة التحويل الإجباري: أي نص شاذ (مثل ..) يتحول إلى NaN دون إيقاف الكود
+                num_col = pd.to_numeric(df_harvested[col], errors='coerce')
+                
+                # إذا وجدنا أن العمود يحتوي فعلاً على أرقام صحيحة بعد التحويل
+                if num_col.notna().sum() > 0:
+                    # نتأكد أنه ليس عموداً نصياً بالكامل (كالأسماء) عبر التأكد أن نسبة الأرقام تتجاوز 30%
+                    if num_col.notna().sum() >= (df_harvested[col].notna().sum() * 0.3):
+                        df_harvested[col] = num_col
+
+            # استخراج الأعمدة الرقمية بعد التنظيف الإجباري
             numeric_cols_harvest = df_harvested.select_dtypes(include=['float64', 'int64']).columns.tolist()
             time_cols = [col for col in df_harvested.columns if any(keyword in col.lower() for keyword in ['year', 'date', 'time', 'سنة', 'عام', 'تاريخ'])]
             x_axis_default = time_cols[0] if time_cols else df_harvested.columns[0]
@@ -376,8 +379,7 @@ elif page == t["harvest"]:
                 
                 st.plotly_chart(fig_harvest, use_container_width=True)
             else:
-                st.warning("⚠️ لا توجد بيانات رقمية صالحة للرسم في هذا الجدول." if selected_lang == "العربية" else "⚠️ No valid numeric data found for visualization.") 
-
+                st.warning("⚠️ لا توجد بيانات رقمية صالحة للرسم في هذا الجدول." if selected_lang == "العربية" else "⚠️ No valid numeric data found for visualization.")
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
