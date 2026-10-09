@@ -628,34 +628,34 @@ elif page == t["desc_stats"]:
                             
             # استخراج الأعمدة الوصفية (نصوص أو فئات) #
             cat_cols = df_desc.columns.tolist()
+if len(cat_cols) >= 2:
+                            col1, col2 = st.columns(2)
+                            var_1 = col1.selectbox(var1_label, cat_cols)
+                            var_2 = col2.selectbox(var2_label, cat_cols)
                             
-            if len(cat_cols) >= 2:
-               col1, col2 = st.columns(2)
-               var_1 = col1.selectbox(var1_label, cat_cols)
-               var_2 = col2.selectbox(var2_label, cat_cols)
-                                
-            if st.button(chi_btn):
-            if var_1 == var_2:
-               st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
-            else:
-            # بناء الجدول المزدوج
-               crosstab_df = pd.crosstab(df[var_1], df[var_2])
-               st.markdown(f"**{res_crosstab}**")
-               st.dataframe(crosstab_df, use_container_width=True)
-                    
-            # إجراء اختبار كاي تربيع
-               chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
-                    
-            # عرض النتائج
-               k1, k2, k3 = st.columns(3)
-               k1.metric(res_stat, f"{chi2:.4f}")
-               k2.metric(res_pval, f"{p_val_chi:.4f}")
-               k3.metric(res_dof, f"{dof}")
-                    
-               if p_val_chi < 0.05:
-                  st.warning(res_sig)
-               else:
-                  st.success(res_not_sig)
+                            if st.button(chi_btn):
+                                if var_1 == var_2:
+                                    st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
+                                else:
+                                    # بناء الجدول المزدوج #
+                                    crosstab_df = pd.crosstab(df_desc[var_1], df_desc[var_2])
+                                    st.markdown(f"**{res_crosstab}**")
+                                    st.dataframe(crosstab_df, use_container_width=True)
+                                    
+                                    # إجراء اختبار كاي تربيع #
+                                    import scipy.stats as stats
+                                    chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
+                                    
+                                    # عرض النتائج #
+                                    k1, k2, k3 = st.columns(3)
+                                    k1.metric(res_stat, f"{chi2:.4f}")
+                                    k2.metric(res_pval, f"{p_val_chi:.4f}")
+                                    k3.metric(res_dof, f"{dof}")
+                                    
+                                    if p_val_chi < 0.05:
+                                        st.warning(res_sig)
+                                    else:
+                                        st.success(res_not_sig)
         else:
             st.info(chi_no_cat)
 
