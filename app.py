@@ -312,7 +312,7 @@ elif page == t["harvest"]:
 # ==========================================
 # 📈 الشاشة البصرية: رسم البيانات المحصودة مباشرة
 # ==========================================
-        if 'smart_memory' in st.session_state and isinstance(st.session_state['smart_memory'], pd.DataFrame) and not st.session_state['smart_memory'].empty:
+if 'smart_memory' in st.session_state and isinstance(st.session_state['smart_memory'], pd.DataFrame) and not st.session_state['smart_memory'].empty:
             import plotly.express as px  # 👈 الاستدعاء السحري الذي كان مفقوداً!
             import pandas as pd
             
