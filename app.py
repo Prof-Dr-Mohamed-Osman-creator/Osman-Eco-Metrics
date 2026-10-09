@@ -342,55 +342,88 @@ elif page == t["harvest"]:
 # ==========================================
 # ✨ المساعد الذكي وصياغة التقارير
 # ==========================================
-    st.markdown("<h1 style='color: #9B59B6;'>✨ المساعد الذكي (Gemini AI) وصياغة التقارير</h1>", unsafe_allow_html=True)
-    
-    if st.session_state['smart_memory'] is not None:
-        st.success("🧠 عظيم! لقد وجدتُ بيانات مخزنة في الذاكرة قادمة من (رادار الحصاد).")
-        st.write("البيانات الحالية:")
-        st.dataframe(st.session_state['smart_memory'])
-        
-        if st.button("📝 توليد تقرير علمي عن هذه البيانات 🪄"):
-            try:
-                import google.generativeai as genai
-                api_key = st.secrets["GEMINI_API_KEY"]
-                genai.configure(api_key=api_key)
-                
-                model = genai.GenerativeModel('gemini-3.8-flash')
-                data_string = st.session_state['smart_memory'].to_string()
-                
-                prompt = f"""
-                أنت خبير اقتصادي وإحصائي في "المدرسة الإيكو-ديناميكية".
-                إليك هذا الجدول الإحصائي الذي تم سحبه من المنظمات الدولية:
-                {data_string}
-                
-                قم بكتابة تقرير أكاديمي رصين يحلل هذه الأرقام، واذكر دلالاتها الاقتصادية المحتملة بلغة علمية دقيقة.
-                """
-                
-                st.success("بدأت صياغة التقرير...")
-                # إنشاء مربع نصي فارغ لنقوم بتحديثه لحظة بلحظة
-                report_placeholder = st.empty()
-                full_response = ""
-                
-                # تفعيل البث المباشر (stream=True)
-                response = model.generate_content(prompt, stream=True)
-                
-                # طباعة الكلمات فور وصولها من السيرفر
-                for chunk in response:
-                    full_response += chunk.text
-                    report_placeholder.markdown(full_response + "▌") # إضافة مؤشر الكتابة النابض
-                
-                # تثبيت النص النهائي
-                report_placeholder.markdown(full_response)
-                
-            except Exception as e:
-                st.error(f"النظام اكتشف الخطأ الحقيقي وهو: {e}")
+    elif page == t["ai_assistant"]:
+    # إعداد نصوص اللغتين لمكتب المستشار
+    if selected_lang == "English":
+        ai_title = "✨ Gemini AI Assistant & Report Generation"
+        ai_desc = "Welcome to the AI Office! Provide your secure API Key to let the algorithms read the 'Smart Memory' and draft professional eco-dynamic reports."
+        key_label = "🔑 Safe Vault: Enter Gemini API Key (Stored securely during session):"
+        context_label = "📝 What should the report focus on? (e.g., Analyze the economic growth trends...)"
+        btn_gen = "Generate Analytical Report 🧠"
+        empty_msg = "👈 The table is empty! Please fetch data via the Harvest Wing first."
+        success_msg = "✅ Data is successfully loaded into the AI context!"
     else:
-        st.info("الذاكرة المركزية فارغة حالياً. اذهب أولاً إلى (رادار الحصاد الآلي) لجلب بيانات، أو أدخل نتائجك يدوياً بالأسفل.")
-        
+        ai_title = "✨ المساعد الذكي وصياغة التقارير (Gemini AI)"
+        ai_desc = "مرحباً بك في مكتب المستشار! ضع مفتاحك في 'الخزينة' لتمكين النماذج اللغوية من قراءة الذاكرة الذكية وصياغة تقارير تحليلية دقيقة."
+        key_label = "🔑 الخزينة الآمنة: أدخل مفتاح Gemini API (مُشفر ويحذف بانتهاء الجلسة):"
+        context_label = "📝 ما هو التركيز الأساسي للتقرير؟ (مثال: قم بتحليل دلالات التشتت والنمو الاقتصادي لهذه البيانات...)"
+        btn_gen = "توليد التقرير التحليلي 🧠"
+        empty_msg = "👈 المائدة فارغة! يرجى جلب البيانات أولاً من جناح الحصاد الآلي."
+        success_msg = "✅ البيانات مستقرة بنجاح في عقل الذكاء الاصطناعي!"
+
+    # واجهة المكتب
+    st.markdown(f"<h2 style='color: #8E44AD;'>{ai_title}</h2>", unsafe_allow_html=True)
+    st.write(ai_desc)
     st.markdown("---")
-    user_input = st.text_area("أو أدخل نتائج أخرى يدوياً هنا:", height=150)
-    if st.button("تحليل النص اليدوي"):
-        st.warning("هذا الزر يعمل بنفس الآلية السابقة.. (سيتم برمجته لاحقاً)")
+
+    # 1. الخزينة (صندوق إدخال المفتاح بكلمة سر مخفية)
+    api_key = st.text_input(key_label, type="password")
+
+    # 2. التحقق من وجود بيانات في الذاكرة
+    if 'smart_memory' not in st.session_state or not isinstance(st.session_state['smart_memory'], pd.DataFrame) or st.session_state['smart_memory'].empty:
+        st.info(empty_msg)
+    else:
+        df = st.session_state['smart_memory']
+        st.success(success_msg)
+        
+        # عرض سريع لعينة من البيانات ليطمئن الباحث
+        with st.expander("👀 إلقاء نظرة على البيانات المُرسلة للنموذج / View Data Context"):
+            st.dataframe(df.head(), use_container_width=True)
+            
+        # 3. توجيه الباحث للمستشار
+        report_focus = st.text_area(context_label, height=100)
+        
+        if st.button(btn_gen):
+            if not api_key:
+                st.error("⚠️ يجب وضع المفتاح (API Key) في الخزينة أولاً!" if selected_lang == "العربية" else "⚠️ API Key is required!")
+            elif not report_focus:
+                st.warning("⚠️ يرجى إعطاء توجيه للمستشار حول موضوع التقرير." if selected_lang == "العربية" else "⚠️ Please provide report instructions.")
+            else:
+                with st.spinner("الخوارزميات تعتصر البيانات وتصيغ التقرير... / Crafting the report..." if selected_lang == "العربية" else "Generating report..."):
+                    try:
+                        import google.generativeai as genai
+                        
+                        # فتح الخزينة وتجهيز العقل
+                        genai.configure(api_key=api_key)
+                        model = genai.GenerativeModel('gemini-1.5-pro') # أو gemini-1.5-flash لسرعة أكبر
+                        
+                        # تحضير الملخص الإحصائي كـ "سياق" للنموذج
+                        data_summary = df.describe().to_string()
+                        
+                        # صياغة التلقين (Prompt)
+                        prompt = f"""
+                        أنت مستشار إحصائي واقتصادي خبير تعمل في 'المدرسة الإيكو-ديناميكية الرقمية'.
+                        تم تكليفك بكتابة تقرير احترافي بناءً على طلب الباحث التالي: {report_focus}
+                        
+                        إليك الملخص الإحصائي للبيانات التي تم سحبها:
+                        {data_summary}
+                        
+                        التعليمات:
+                        1. اكتب التقرير بلغة: {selected_lang}.
+                        2. اجعل التقرير هيكلياً ومقسماً إلى: (مقدمة، تحليل للبيانات، واستنتاجات/توصيات).
+                        3. اربط التحليل بالمفاهيم الاقتصادية والإحصائية بشكل دقيق.
+                        """
+                        
+                        # توليد واختبار اللغة
+                        response = model.generate_content(prompt)
+                        
+                        # عرض التقرير
+                        st.markdown("---")
+                        st.markdown(f"<h3 style='color: #2E86C1;'>📄 التقرير النهائي / Final Report</h3>", unsafe_allow_html=True)
+                        st.write(response.text)
+                        
+                    except Exception as e:
+                        st.error(f"❌ حدث خطأ في الاتصال بالخزينة أو النموذج: {e}")
 
 # ==========================================
 # 5. التوجيه وفتح الأجنحة (Routing)الاحصاء الوصفي
