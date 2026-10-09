@@ -807,7 +807,6 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                 res_paired = pg.ttest(df_paired[var_pre], df_paired[var_post], paired=True)
                                 st.success(f"📌 مقارنة مترابطة بين [{var_pre}] و [{var_post}]")
                                 st.dataframe(res_paired, use_container_width=True)
-                        
                         # 4. تحليل التباين الأحادي (One-Way ANOVA)
                         elif "One-Way ANOVA" in para_test:
                             target_var = st.selectbox("المتغير التابع (الكمي) / Dependent Variable:", numeric_cols)
@@ -816,13 +815,12 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                 groups_count = df_infer[group_var].nunique()
                                 if groups_count > 2:
                                     st.success(f"📌 تحليل تباين لـ [{target_var}] عبر {groups_count} مجموعات في [{group_var}]")
-                                    # جدول الأنوڤا
                                     res_anova = pg.anova(data=df_infer, dv=target_var, between=group_var)
                                     st.markdown("**📊 جدول تحليل التباين (ANOVA Table)**")
                                     st.dataframe(res_anova, use_container_width=True)
                                     
-                                    # اختبار توكي البعدي (Tukey Post-Hoc) لمعرفة أين تكمن الفروق
-                                    if res_anova['p-unc'][0] < 0.05:
+                                    # التعديل هنا: استخدام .values[0] لتجنب خطأ p-unc
+                                    if res_anova['p-unc'].values[0] < 0.05:
                                         st.warning("✨ نتيجة الأنوڤا دالة إحصائياً! إليك اختبار (توكي) لتحديد المجموعات المختلفة:")
                                         res_tukey = pg.pairwise_tukey(data=df_infer, dv=target_var, between=group_var)
                                         st.dataframe(res_tukey, use_container_width=True)
@@ -831,7 +829,7 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                 else:
                                     st.warning("⚠️ المتغير الفئوي يحتوي على مجموعتين أو أقل، يُفضل استخدام اختبار T لعينتين مستقلتين.")
                                     
-                        # 5. تحليل التباين الثنائي (Two-Way ANOVA)
+                       # 5. تحليل التباين الثنائي (Two-Way ANOVA)
                         elif "Two-Way ANOVA" in para_test:
                             st.write("لدراسة تأثير عاملين فئويين (متغيرين مستقلين) معاً والتفاعل بينهما على متغير كمي تابع.")
                             target_var = st.selectbox("المتغير التابع (الكمي) / Dependent Variable:", numeric_cols)
@@ -842,11 +840,28 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                 group_var2 = st.selectbox("العامل الثاني / Factor 2:", [c for c in categorical_cols if c != group_var1])
                                 
                             if st.button("إجراء التباين الثنائي / Run Two-Way ANOVA"):
-                                st.success(f"📌 دراسة تأثير [{group_var1}] و [{group_var2}] والتفاعل بينهما على [{target_var}]")
-                                res_two_way = pg.anova(data=df_infer.dropna(subset=[target_var, group_var1, group_var2]), 
-                                                       dv=target_var, 
-                                                       between=[group_var1, group_var2])
-                                st.dataframe(res_two_way, use_container_width=True)
+                                clean_df = df_infer.dropna(subset=[target_var, group_var1, group_var2])
+                                
+                                # التأكد من وجود أكثر من مجموعة في كل عامل لتجنب انهيار الخوارزمية
+                                if clean_df[group_var1].nunique() > 1 and clean_df[group_var2].nunique() > 1:
+                                    st.success(f"📌 دراسة تأثير [{group_var1}] و [{group_var2}] والتفاعل بينهما على [{target_var}]")
+                                    res_two_way = pg.anova(data=clean_df, 
+                                                           dv=target_var, 
+                                                           between=[group_var1, group_var2])
+                                    st.markdown("**📊 جدول تحليل التباين الثنائي (Two-Way ANOVA Table)**")
+                                    st.dataframe(res_two_way, use_container_width=True)
+                                    
+                                    # التعديل الاستباقي: التفسير الذكي والآمن لقيم (p-unc) لكل صف لتجنب خطأ الفهرس
+                                    st.markdown("**💡 التفسير الإحصائي الآمن للنتائج:**")
+                                    for index, row in res_two_way.iterrows():
+                                        source = row['Source']
+                                        p_val = row['p-unc']
+                                        if p_val < 0.05:
+                                            st.warning(f"✨ التأثير الخاص بـ **{source}** دال إحصائياً (p-value = {p_val:.4f}).")
+                                        else:
+                                            st.info(f"⚪ التأثير الخاص بـ **{source}** غير دال إحصائياً (p-value = {p_val:.4f}).")
+                                else:
+                                    st.error("⚠️ يجب أن يحتوي كل عامل فئوي على مجموعتين على الأقل لإجراء التباين الثنائي.")
 # ==========================================
 # 2. عائلة الاختبارات اللامعلمية (Non-Parametric Tests)
 # ==========================================
@@ -889,7 +904,7 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                 st.success(f"📌 مقارنة الفروق المترابطة بين [{var_pre}] و [{var_post}]")
                                 st.dataframe(res_wilcoxon, use_container_width=True)
                         
-                        # 3. اختبار كروسكال-واليس (أكثر من مجموعتين)
+                       # 3. اختبار كروسكال-واليس (أكثر من مجموعتين)
                         elif "Kruskal-Wallis" in non_para_test:
                             target_var = st.selectbox("المتغير التابع (الكمي) / Dependent Variable:", numeric_cols)
                             group_var = st.selectbox("متغير التجميع (الفئوي) / Grouping Variable:", categorical_cols)
@@ -901,15 +916,15 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                     st.markdown("**📊 جدول كروسكال-واليس (Kruskal-Wallis H)**")
                                     st.dataframe(res_kw, use_container_width=True)
                                     
-                                    # اختبارات ما بعد التباين اللامعلمية (Post-Hoc Pairwise)
-                                    if res_kw['p-unc'][0] < 0.05:
+                                    # التعديل هنا: استخدام .values[0]
+                                    if res_kw['p-unc'].values[0] < 0.05:
                                         st.warning("✨ توجد فروق دالة إحصائياً! إليك المقارنات الثنائية (Pairwise Mann-Whitney) لتحديد مصدر الاختلاف:")
                                         res_pw = pg.pairwise_tests(data=df_infer, dv=target_var, between=group_var, parametric=False)
                                         st.dataframe(res_pw, use_container_width=True)
                                 else:
                                     st.warning("⚠️ عدد المجموعات 2 أو أقل، يُفضل استخدام اختبار مان-ويتني.")
 
-                        # 4. اختبار فريدمان
+                        # 4. اختبار فريدمان مع المقارنات المتعددة الذكية
                         elif "Friedman" in non_para_test:
                             st.write("يُستخدم لمقارنة 3 متغيرات مترابطة أو أكثر (مثل تقييمات لـ 3 سنوات متتالية لنفس العينة).")
                             selected_vars = st.multiselect("اختر 3 متغيرات كمية على الأقل / Select Variables:", numeric_cols)
@@ -917,6 +932,8 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                 if len(selected_vars) >= 3:
                                     import scipy.stats as stats
                                     import pandas as pd
+                                    import itertools
+                                    
                                     clean_data = df_infer[selected_vars].dropna()
                                     args = [clean_data[col] for col in selected_vars]
                                     stat, p_value = stats.friedmanchisquare(*args)
@@ -928,6 +945,19 @@ elif "Inferential" in page or "الاستدلالي" in page:
                                     })
                                     st.success(f"📌 اختبار فريدمان للمتغيرات: {', '.join(selected_vars)}")
                                     st.dataframe(res_friedman, use_container_width=True)
+                                    
+                                    # إضافة المقارنات البعدية الذكية لفريدمان
+                                    if p_value < 0.05:
+                                        st.warning("✨ نتيجة فريدمان دالة إحصائياً! إليك المقارنات الثنائية (Post-Hoc Wilcoxon) بين كل متغيرين:")
+                                        posthoc_res = []
+                                        for var1, var2 in itertools.combinations(selected_vars, 2):
+                                            res_w = pg.wilcoxon(clean_data[var1], clean_data[var2])
+                                            posthoc_res.append({
+                                                "المقارنة الثنائية": f"{var1} vs {var2}",
+                                                "قيمة W": res_w['W-val'].values[0],
+                                                "مستوى الدلالة (p-value)": res_w['p-val'].values[0]
+                                            })
+                                        st.dataframe(pd.DataFrame(posthoc_res), use_container_width=True)
                                 else:
                                     st.error("⚠️ يرجى اختيار 3 متغيرات على الأقل لإجراء هذا الاختبار.")
                         
