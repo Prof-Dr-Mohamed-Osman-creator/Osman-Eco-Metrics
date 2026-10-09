@@ -732,7 +732,7 @@ elif "Inferential" in page or "الاستدلالي" in page:
                 st.success("✅ البيانات مستقرة وجاهزة للتحليل الاستدلالي!" if selected_lang == "العربية" else "✅ Data is ready for inferential analysis!")
                 
                 numeric_cols = df_infer.select_dtypes(include=['float64', 'int64']).columns.tolist()
-                categorical_cols = df_infer.select_dtypes(include=['object', 'category', 'bool']).columns.tolist()
+                categorical_cols = df_infer.columns.tolist()
 
                 st.markdown("### 🧬 تحديد مسار التحليل / Analysis Path")
                 
