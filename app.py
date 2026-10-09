@@ -45,47 +45,68 @@ lang_dict = {
     "English": {
         "sys_title": "Osman Eco-Metrics System",
         "sys_subtitle": "Digital Eco-Dynamic School | Comprehensive Metrics Lab",
-        "menu_title": "🚀 Select Wing:",
+        "sidebar_header": "🚀 Digital Lab Wings",
+        "menu_title": "Select Wing:",
         "home": "🏠 Home Page",
         "harvest": "🕸️ Automated Data Harvest",
-        "world_bank": "World Bank Data",
-        "un_comtrade": "UN Comtrade",
+        "data_portal": "📁 Comprehensive Data Portal",
         "desc_stats": "📊 Descriptive Statistics & Distribution",
-        "econometrics": "📈 Econometrics & Forecasting",
-        "machine_learning": "🤖 Machine Learning (Post-Harvest)",
+        "inferential_stats": "📈 Inferential Statistics (Parametric & Non-Parametric)",
+        "econometrics": "📉 Econometrics & Forecasting",
         "ai_assistant": "✨ Gemini AI Assistant",
-        "eco_encyclopedia": "📖 Eco-Dynamic Encyclopedia"
+        "eco_encyclopedia": "📖 Eco-Dynamic Encyclopedia",
+        "psychometrics": "🧠 Psychometrics",
+        "operations_research": "⚙️ Operations Research",
+        "machine_learning": "🤖 Post-Harvest Loss Simulator (ML)",
+        "competitiveness": "🌍 Export Competitiveness & Water Footprint",
+        "academy": "🎓 Training Academy",
+        "community": "💬 Researchers Community"
     },
     "العربية": {
         "sys_title": "Osman Eco-Metrics System",
         "sys_subtitle": "المدرسة الإيكو-ديناميكية الرقمية | مختبر القياس المتعدد الشامل",
-        "menu_title": "🚀 اختر الجناح المطلوب:",
+        "sidebar_header": "🚀 أجنحة المختبر الرقمي",
+        "menu_title": "اختر الجناح المطلوب:",
         "home": "🏠 الصفحة الرئيسية",
         "harvest": "🕸️ رادار الحصاد الآلي للبيانات",
-        "world_bank": "بيانات البنك الدولي",
-        "un_comtrade": "الأمم المتحدة - كومتريد",
+        "data_portal": "📁 بوابة البيانات الشاملة (استبيانات وسلاسل)",
         "desc_stats": "📊 الإحصاء الوصفي وتوزيع البيانات",
-        "econometrics": "📈 النماذج القياسية والتنبؤ",
-        "machine_learning": "🤖 محاكي فاقد ما بعد الحصاد (ML)",
-        "ai_assistant": "✨ المساعد الذكي وصياغة التقارير",
-        "eco_encyclopedia": "📖 موسوعة المدرسة الإيكو-ديناميكية"
+        "inferential_stats": "📈 الإحصاء الاستدلالي (Parametric & Non-Parametric)",
+        "econometrics": "📉 النماذج القياسية والتنبؤ (Econometrics)",
+        "ai_assistant": "✨ المساعد الذكي وصياغة التقارير (Gemini AI)",
+        "eco_encyclopedia": "📖 موسوعة المدرسة الإيكو-ديناميكية",
+        "psychometrics": "🧠 القياس النفسي وتأكيد المقاييس (Psychometrics)",
+        "operations_research": "⚙️ بحوث العمليات (Operations Research)",
+        "machine_learning": "🤖 محاكي فاقد ما بعد الحصاد (Machine Learning)",
+        "competitiveness": "🌍 مرصد التنافسية التصديرية والبصمة المائية",
+        "academy": "🎓 أكاديمية التدريب والدورات",
+        "community": "💬 مجتمع الباحثين (تواصل ومناقشات)"
     }
 }
 
 # نخصص المتغير 't' ليحمل كلمات اللغة التي اختارها الباحث
 t = lang_dict[selected_lang]
 
-# --- 3. بناء القائمة الجانبية باللغة المختارة ---
+# --- 3. بناء القائمة الجانبية بجميع الأجنحة باللغة المختارة ---
+st.sidebar.markdown(f"### {t['sidebar_header']}")
+
 page = st.sidebar.radio(
     t["menu_title"],
     [
         t["home"], 
         t["harvest"], 
+        t["data_portal"],
         t["desc_stats"],
+        t["inferential_stats"],
         t["econometrics"],
-        t["machine_learning"],
         t["ai_assistant"],
-        t["eco_encyclopedia"]
+        t["eco_encyclopedia"],
+        t["psychometrics"],
+        t["operations_research"],
+        t["machine_learning"],
+        t["competitiveness"],
+        t["academy"],
+        t["community"]
     ]
 )
 
