@@ -7,6 +7,11 @@ scipy
 requests
 google-generativeai
 matplotlib
+scipy==1.11.3
+plotly==5.17.0
+matplotlib==3.8.0
+
+
 # 1. محركات البيانات والجداول
 pandas
 numpy
@@ -34,3 +39,11 @@ statsmodels
 scikit-learn
 pingouin
 
+# 7. محركات بحوث العمليات (Operations Research & Optimization)
+pulp
+ortools
+
+# 8. محركات البرامج الإحصائية المتقدمة والسلاسل الزمنية (Advanced Statistics & Time Series)
+pingouin
+arch
+pmdarima
