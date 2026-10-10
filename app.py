@@ -447,7 +447,7 @@ elif page == t["ai_assistant"]:
                         st.error(f"❌ حدث خطأ في الاتصال بالخزينة أو النموذج: {e}")
 
 # ==========================================
-# 5. التوجيه وفتح الأجنحة (Routing)الاحصاء الوصفي
+# 5. التوجيه وفتح الأجنحة (Routing) الاحصاء الوصفي
 # ==========================================
 
 if page == t["home"]:
@@ -477,6 +477,20 @@ elif page == t["desc_stats"]:
         ks_fail = "Result: Data does not follow a normal distribution (Reject H0) ❌"
         vis_title, hist_title, qq_title = "### 🎨 Data Visualization", "Histogram with Outliers Boxplot", "**Q-Q Plot for Normality**"
         no_num_msg = "The data in memory does not contain quantitative variables. Please check the data."
+        
+        # --- قاموس اختبار كاي (لضمان الاستقرار التام) ---
+        chi_title = "🎲 Cross-Tabulation & Chi-Square Test"
+        chi_desc = "Select two variables to generate a cross-tab and perform a Chi-Square test of independence."
+        var1_label = "First Variable (Rows)"
+        var2_label = "Second Variable (Columns)"
+        chi_btn = "Run Chi-Square Test"
+        res_crosstab = "Cross-Tabulation Table:"
+        res_stat = "Chi-Square Value"
+        res_pval = "P-Value"
+        res_dof = "Degrees of Freedom"
+        res_sig = "Result: Significant relationship exists (Reject H0) ❌"
+        res_not_sig = "Result: No significant relationship (Fail to reject H0) ✅"
+        chi_no_cat = "Not enough variables to perform the test."
     else:
         header_title = "📊 مائدة الإحصاء الوصفي واختبارات التوزيع"
         header_desc = "يقدم هذا الجناح وجبة متكاملة من المقاييس الوصفية، مقاييس التشتت، واختبارات التوزيع الطبيعي للبيانات المستدعاة."
@@ -494,6 +508,20 @@ elif page == t["desc_stats"]:
         ks_fail = "نتيجة الاختبار: البيانات لا تتبع التوزيع الطبيعي (نرفض الفرض العدم) ❌"
         vis_title, hist_title, qq_title = "### 🎨 الرؤية البصرية للبيانات", "المدرج التكراري (Histogram) مع صندوق القيم الشاذة", "**رسم الـ Q-Q Plot للطبيعية**"
         no_num_msg = "البيانات الموجودة في الذاكرة لا تحتوي على متغيرات رقمية. يرجى التأكد من البيانات."
+        
+        # --- قاموس اختبار كاي (لضمان الاستقرار التام) ---
+        chi_title = "🎲 الجدول المزدوج واختبار كاي تربيع (Chi-Square)"
+        chi_desc = "اختر متغيرين لإنشاء جدول التكرار المزدوج وإجراء اختبار الاستقلالية."
+        var1_label = "المتغير الأول (الصفوف)"
+        var2_label = "المتغير الثاني (الأعمدة)"
+        chi_btn = "إجراء اختبار كاي تربيع"
+        res_crosstab = "جدول التكرار المزدوج (Cross-Tab):"
+        res_stat = "قيمة كاي تربيع"
+        res_pval = "القيمة الاحتمالية (P-Value)"
+        res_dof = "درجات الحرية"
+        res_sig = "النتيجة: توجد علاقة معنوية بين المتغيرين (نرفض فرض العدم) ❌"
+        res_not_sig = "النتيجة: لا توجد علاقة معنوية بين المتغيرين (لا نرفض فرض العدم) ✅"
+        chi_no_cat = "لا يوجد عدد كافٍ من المتغيرات لإجراء الاختبار."
 
     # --- واجهة الجناح ---
     st.markdown(f"<h2 style='color: #2E86C1;'>{header_title}</h2>", unsafe_allow_html=True)
@@ -505,6 +533,9 @@ elif page == t["desc_stats"]:
         df = st.session_state['smart_memory']
         st.success(ready_msg)
         
+        # ==========================================
+        # 1️⃣ القسم الأول: الإحصاء الوصفي للمتغيرات الرقمية
+        # ==========================================
         numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
         
         if len(numeric_cols) > 0:
@@ -590,15 +621,16 @@ elif page == t["desc_stats"]:
                         st.pyplot(fig)
         else:
             st.warning(no_num_msg)
+            
         # ==========================================
-        # 🎲 الطبق الجانبي: الجدول المزدوج واختبار كاي (للمتغيرات الوصفية)
+        # 2️⃣ القسم الثاني: الجدول المزدوج واختبار كاي (يظهر دائمًا أسفل الجناح)
         # ==========================================
         st.markdown("---")
         st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
         st.write(chi_desc)
         
-        # قراءة جميع الأعمدة لضمان دخول المتغيرات الرقمية المشفرة
-        cat_cols = df_desc.columns.tolist()
+        # قراءة جميع الأعمدة (تم استبدال df_desc بـ df لتفادي الأخطاء)
+        cat_cols = df.columns.tolist()
         
         if len(cat_cols) >= 2:
             col1, col2 = st.columns(2)
@@ -610,7 +642,7 @@ elif page == t["desc_stats"]:
                     st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
                 else:
                     # 1. بناء وعرض الجدول المزدوج
-                    crosstab_df = pd.crosstab(df_desc[var_1], df_desc[var_2])
+                    crosstab_df = pd.crosstab(df[var_1], df[var_2])
                     st.markdown(f"**{res_crosstab}**")
                     st.dataframe(crosstab_df, use_container_width=True)
                     
@@ -618,11 +650,13 @@ elif page == t["desc_stats"]:
                     import scipy.stats as stats
                     chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
                     
-                    # 3. عرض النتائج في بطاقات
-                    k1, k2, k3 = st.columns(3)
-                    k1.metric(res_stat, f"{chi2:.4f}")
-                    k2.metric(res_pval, f"{p_val_chi:.4f}")
-                    k3.metric(res_dof, f"{dof}")
+                    # 3. عرض النتائج بتنسيق مصغر وأنيق (تم استبدال st.metric الكبيرة بتصميم HTML صغير)
+                    c1, c2, c3 = st.columns(3)
+                    c1.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_stat}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{chi2:.4f}</span></div>", unsafe_allow_html=True)
+                    c2.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_pval}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{p_val_chi:.4f}</span></div>", unsafe_allow_html=True)
+                    c3.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_dof}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{dof}</span></div>", unsafe_allow_html=True)
+                    
+                    st.markdown("<br>", unsafe_allow_html=True)
                     
                     # 4. التفسير والقرار الإحصائي
                     if p_val_chi < 0.05:
@@ -631,6 +665,7 @@ elif page == t["desc_stats"]:
                         st.success(res_not_sig)
         else:
             st.info(chi_no_cat)
+            
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
 # ==========================================
