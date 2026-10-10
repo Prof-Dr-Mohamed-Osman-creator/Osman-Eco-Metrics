@@ -606,51 +606,7 @@ elif page == t["desc_stats"]:
                     
         else:
             st.info(chi_no_cat)
-            
-        # ==========================================
-        # 2️⃣ القسم الثاني: الجدول المزدوج واختبار كاي (يظهر دائمًا أسفل الجناح)
-        # ==========================================
-        st.markdown("---")
-        st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
-        st.write(chi_desc)
-        
-        # قراءة جميع الأعمدة (تم استبدال df_desc بـ df لتفادي الأخطاء)
-        cat_cols = df.columns.tolist()
-        
-        if len(cat_cols) >= 2:
-            col1, col2 = st.columns(2)
-            var_1 = col1.selectbox(var1_label, cat_cols, key="chi_var1_select")
-            var_2 = col2.selectbox(var2_label, cat_cols, key="chi_var2_select")
-            
-            if st.button(chi_btn, key="chi_run_button"):
-                if var_1 == var_2:
-                    st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
-                else:
-                    # 1. بناء وعرض الجدول المزدوج
-                    crosstab_df = pd.crosstab(df[var_1], df[var_2])
-                    st.markdown(f"**{res_crosstab}**")
-                    st.dataframe(crosstab_df, use_container_width=True)
-                    
-                    # 2. إجراء الحساب الإحصائي
-                    import scipy.stats as stats
-                    chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
-                    
-                    # 3. عرض النتائج بتنسيق مصغر وأنيق (تم استبدال st.metric الكبيرة بتصميم HTML صغير)
-                    c1, c2, c3 = st.columns(3)
-                    c1.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_stat}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{chi2:.4f}</span></div>", unsafe_allow_html=True)
-                    c2.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_pval}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{p_val_chi:.4f}</span></div>", unsafe_allow_html=True)
-                    c3.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_dof}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{dof}</span></div>", unsafe_allow_html=True)
-                    
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    
-                    # 4. التفسير والقرار الإحصائي
-                    if p_val_chi < 0.05:
-                        st.warning(res_sig)
-                    else:
-                        st.success(res_not_sig)
-        else:
-            st.info(chi_no_cat)
-            
+                        
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
 # ==========================================
