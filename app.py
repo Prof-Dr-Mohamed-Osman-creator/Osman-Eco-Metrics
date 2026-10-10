@@ -717,8 +717,8 @@ elif page == t["desc_stats"]:
         fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
         st.plotly_chart(fig_bar, use_container_width=True)
         
-else:
-st.info(chi_no_cat)
+        else:
+            st.info(chi_no_cat)
                         
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
