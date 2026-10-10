@@ -688,37 +688,37 @@ elif page == t["desc_stats"]:
         else:
             st.info(chi_no_cat)
                         
-                    # ==========================================
-                    # 🎨 5. الرسم البياني التفاعلي للجدول المزدوج
-                    # ==========================================
-                    st.markdown("---")
-                    st.markdown("### 📊 الرؤية البصرية للجدول المزدوج" if selected_lang == "العربية" else "### 📊 Cross-Tabulation Visualization")
-                    
-                    # إعطاء الباحث حرية كتابة وتعديل أسماء المحاور والعنوان
-                    t_col, x_col, l_col = st.columns(3)
-                    chart_title = t_col.text_input("عنوان الرسم" if selected_lang == "العربية" else "Chart Title", value=f"{var_1} vs {var_2}", key="c_title")
-                    x_label = x_col.text_input("اسم المحور الأفقي (X)" if selected_lang == "العربية" else "X-Axis Label", value=var_1, key="c_xlab")
-                    l_label = l_col.text_input("اسم مفتاح الألوان (Legend)" if selected_lang == "العربية" else "Legend Label", value=var_2, key="c_llab")
-                    
-                    # تجهيز البيانات للرسم (تحويل الجدول المزدوج إلى صيغة مناسبة لـ Plotly)
-                    import plotly.express as px
-                    chart_df = crosstab_df.reset_index()
-                    melted_df = chart_df.melt(id_vars=var_1, value_vars=crosstab_df.columns, var_name=var_2, value_name='Count')
-                    
-                    y_label = 'التكرار' if selected_lang == 'العربية' else 'Frequency / Count'
-                    
-                    # رسم الأعمدة المجمعة (Grouped Bar Chart)
-                    fig_bar = px.bar(melted_df, x=var_1, y='Count', color=var_2, barmode='group',
-                                 title=chart_title,
-                                 labels={var_1: x_label, var_2: l_label, 'Count': y_label},
-                                 color_discrete_sequence=px.colors.qualitative.Pastel)
-                    
-                    # تحسين شكل الرسم
-                    fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
-                    st.plotly_chart(fig_bar, use_container_width=True)
-                    
-        else:
-            st.info(chi_no_cat)
+        # ==========================================
+        # 🎨 5. الرسم البياني التفاعلي للجدول المزدوج
+        # ==========================================
+        st.markdown("---")
+        st.markdown("### 📊 الرؤية البصرية للجدول المزدوج" if selected_lang == "العربية" else "### 📊 Cross-Tabulation Visualization")
+        
+        # إعطاء الباحث حرية كتابة وتعديل أسماء المحاور والعنوان
+        t_col, x_col, l_col = st.columns(3)
+        chart_title = t_col.text_input("عنوان الرسم" if selected_lang == "العربية" else "Chart Title", value=f"{var_1} vs {var_2}", key="c_title")
+        x_label = x_col.text_input("اسم المحور الأفقي (X)" if selected_lang == "العربية" else "X-Axis Label", value=var_1, key="c_xlab")
+        l_label = l_col.text_input("اسم مفتاح الألوان (Legend)" if selected_lang == "العربية" else "Legend Label", value=var_2, key="c_llab")
+        
+        # تجهيز البيانات للرسم (تحويل الجدول المزدوج إلى صيغة مناسبة لـ Plotly)
+        import plotly.express as px
+        chart_df = crosstab_df.reset_index()
+        melted_df = chart_df.melt(id_vars=var_1, value_vars=crosstab_df.columns, var_name=var_2, value_name='Count')
+        
+        y_label = 'التكرار' if selected_lang == 'العربية' else 'Frequency / Count'
+        
+        # رسم الأعمدة المجمعة (Grouped Bar Chart)
+        fig_bar = px.bar(melted_df, x=var_1, y='Count', color=var_2, barmode='group',
+                     title=chart_title,
+                     labels={var_1: x_label, var_2: l_label, 'Count': y_label},
+                     color_discrete_sequence=px.colors.qualitative.Pastel)
+        
+        # تحسين شكل الرسم
+        fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
+        st.plotly_chart(fig_bar, use_container_width=True)
+        
+else:
+st.info(chi_no_cat)
                         
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
