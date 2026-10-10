@@ -534,93 +534,78 @@ elif page == t["desc_stats"]:
         st.success(ready_msg)
         
         # ==========================================
-        # 1️⃣ القسم الأول: الإحصاء الوصفي للمتغيرات الرقمية
+        # 2️⃣ القسم الثاني: الجدول المزدوج واختبار كاي (يظهر دائمًا أسفل الجناح)
         # ==========================================
-        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
+        st.markdown("---")
+        st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
+        st.write(chi_desc)
         
-        if len(numeric_cols) > 0:
-            selected_col = st.selectbox(select_col_msg, numeric_cols)
-            data_col = df[selected_col].dropna()
+        # قراءة جميع الأعمدة (تم استبدال df_desc بـ df لتفادي الأخطاء)
+        cat_cols = df.columns.tolist()
+        
+        if len(cat_cols) >= 2:
+            col1, col2 = st.columns(2)
+            var_1 = col1.selectbox(var1_label, cat_cols, key="chi_var1_select")
+            var_2 = col2.selectbox(var2_label, cat_cols, key="chi_var2_select")
             
-            if st.button(btn_msg):
-                with st.spinner(spinner_msg):
-                    import numpy as np
-                    from scipy import stats
-                    import plotly.express as px
-                    import matplotlib.pyplot as plt
+            if st.button(chi_btn, key="chi_run_button"):
+                if var_1 == var_2:
+                    st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
+                else:
+                    # 1. بناء وعرض الجدول المزدوج
+                    crosstab_df = pd.crosstab(df[var_1], df[var_2])
+                    st.markdown(f"**{res_crosstab}**")
+                    st.dataframe(crosstab_df, use_container_width=True)
                     
-                    # الحسابات الإحصائية
-                    mean = np.mean(data_col)
-                    median = np.median(data_col)
-                    mode_result = stats.mode(data_col, keepdims=False)
-                    mode = mode_result.mode if hasattr(mode_result, 'mode') else mode_result[0]
-                    pos_data = data_col.loc[data_col > 0]
-                    geom_mean = stats.gmean(pos_data) if not pos_data.empty else np.nan
-                    harm_mean = stats.hmean(pos_data) if not pos_data.empty else np.nan
+                    # 2. إجراء الحساب الإحصائي
+                    import scipy.stats as stats
+                    chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
                     
-                    data_range = np.ptp(data_col)
-                    iqr = stats.iqr(data_col)
-                    variance = np.var(data_col, ddof=1)
-                    std_dev = np.std(data_col, ddof=1)
-                    mad = (data_col - mean).abs().mean()
-                    cv = (std_dev / mean) * 100 if mean != 0 else np.nan
+                    # 3. عرض النتائج بتنسيق مصغر وأنيق
+                    c1, c2, c3 = st.columns(3)
+                    c1.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_stat}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{chi2:.4f}</span></div>", unsafe_allow_html=True)
+                    c2.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_pval}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{p_val_chi:.4f}</span></div>", unsafe_allow_html=True)
+                    c3.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_dof}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{dof}</span></div>", unsafe_allow_html=True)
                     
-                    skewness = stats.skew(data_col)
-                    kurtosis = stats.kurtosis(data_col)
+                    st.markdown("<br>", unsafe_allow_html=True)
                     
-                    std_data = (data_col - mean) / std_dev
-                    ks_stat, p_value = stats.kstest(std_data, 'norm')
-                    
-                    # العرض الديناميكي
-                    st.markdown(cat1)
-                    c1, c2, c3, c4, c5 = st.columns(5)
-                    c1.metric(m_mean, f"{mean:.4f}")
-                    c2.metric(m_median, f"{median:.4f}")
-                    c3.metric(m_mode, f"{mode:.4f}")
-                    c4.metric(m_geom, f"{geom_mean:.4f}")
-                    c5.metric(m_harm, f"{harm_mean:.4f}")
-                    
-                    st.markdown(cat2)
-                    d1, d2, d3, d4, d5 = st.columns(5)
-                    d1.metric(m_var, f"{variance:.4f}")
-                    d2.metric(m_std, f"{std_dev:.4f}")
-                    d3.metric(m_range, f"{data_range:.4f}")
-                    d4.metric(m_iqr, f"{iqr:.4f}")
-                    d5.metric(m_cv, f"{cv:.2f}%")
-                    
-                    st.markdown(cat3)
-                    s1, s2, s3 = st.columns(3)
-                    s1.metric(m_skew, f"{skewness:.4f}")
-                    s2.metric(m_kurt, f"{kurtosis:.4f}")
-                    s3.metric(m_mad, f"{mad:.4f}")
-                    
-                    st.markdown(cat4)
-                    k1, k2 = st.columns(2)
-                    k1.metric(m_ks, f"{ks_stat:.4f}")
-                    k2.metric(m_pval, f"{p_value:.4f}")
-                    
-                    if p_value > 0.05:
-                        st.success(ks_pass)
+                    # 4. التفسير والقرار الإحصائي
+                    if p_val_chi < 0.05:
+                        st.warning(res_sig)
                     else:
-                        st.warning(ks_fail)
+                        st.success(res_not_sig)
                         
-                    st.markdown(vis_title)
-                    vcol1, vcol2 = st.columns(2)
+                    # ==========================================
+                    # 🎨 5. الرسم البياني التفاعلي للجدول المزدوج
+                    # ==========================================
+                    st.markdown("---")
+                    st.markdown("### 📊 الرؤية البصرية للجدول المزدوج" if selected_lang == "العربية" else "### 📊 Cross-Tabulation Visualization")
                     
-                    with vcol1:
-                        fig_hist = px.histogram(data_frame=df, x=selected_col, marginal="box", 
-                                                title=hist_title, color_discrete_sequence=['#2E86C1'])
-                        st.plotly_chart(fig_hist, use_container_width=True)
-                        
-                    with vcol2:
-                        st.markdown(qq_title)
-                        fig, ax = plt.subplots(figsize=(6, 4))
-                        stats.probplot(data_col, dist="norm", plot=ax)
-                        ax.set_title("")
-                        ax.get_lines()[0].set_markerfacecolor('#2E86C1')
-                        st.pyplot(fig)
+                    # إعطاء الباحث حرية كتابة وتعديل أسماء المحاور والعنوان
+                    t_col, x_col, l_col = st.columns(3)
+                    chart_title = t_col.text_input("عنوان الرسم" if selected_lang == "العربية" else "Chart Title", value=f"{var_1} vs {var_2}", key="c_title")
+                    x_label = x_col.text_input("اسم المحور الأفقي (X)" if selected_lang == "العربية" else "X-Axis Label", value=var_1, key="c_xlab")
+                    l_label = l_col.text_input("اسم مفتاح الألوان (Legend)" if selected_lang == "العربية" else "Legend Label", value=var_2, key="c_llab")
+                    
+                    # تجهيز البيانات للرسم (تحويل الجدول المزدوج إلى صيغة مناسبة لـ Plotly)
+                    import plotly.express as px
+                    chart_df = crosstab_df.reset_index()
+                    melted_df = chart_df.melt(id_vars=var_1, value_vars=crosstab_df.columns, var_name=var_2, value_name='Count')
+                    
+                    y_label = 'التكرار' if selected_lang == 'العربية' else 'Frequency / Count'
+                    
+                    # رسم الأعمدة المجمعة (Grouped Bar Chart)
+                    fig_bar = px.bar(melted_df, x=var_1, y='Count', color=var_2, barmode='group',
+                                 title=chart_title,
+                                 labels={var_1: x_label, var_2: l_label, 'Count': y_label},
+                                 color_discrete_sequence=px.colors.qualitative.Pastel)
+                    
+                    # تحسين شكل الرسم
+                    fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
+                    st.plotly_chart(fig_bar, use_container_width=True)
+                    
         else:
-            st.warning(no_num_msg)
+            st.info(chi_no_cat)
             
         # ==========================================
         # 2️⃣ القسم الثاني: الجدول المزدوج واختبار كاي (يظهر دائمًا أسفل الجناح)
