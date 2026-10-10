@@ -449,7 +449,6 @@ elif page == t["ai_assistant"]:
 # ==========================================
 # 5. التوجيه وفتح الأجنحة (Routing) الاحصاء الوصفي
 # ==========================================
-
 if page == t["home"]:
     welcome_msg = "Please select an analytical wing from the sidebar to activate the algorithms." if selected_lang == "English" else "يرجى اختيار جناح التحليل من القائمة الجانبية لتفعيل الخوارزميات."
     st.info(f"👈 {welcome_msg}")
