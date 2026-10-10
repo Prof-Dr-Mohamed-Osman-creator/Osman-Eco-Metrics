@@ -477,7 +477,7 @@ elif page == t["desc_stats"]:
         vis_title, hist_title, qq_title = "### 🎨 Data Visualization", "Histogram with Outliers Boxplot", "**Q-Q Plot for Normality**"
         no_num_msg = "The data in memory does not contain quantitative variables. Please check the data."
         
-        # --- قاموس اختبار كاي (لضمان الاستقرار التام) ---
+        # --- قاموس اختبار كاي ---
         chi_title = "🎲 Cross-Tabulation & Chi-Square Test"
         chi_desc = "Select two variables to generate a cross-tab and perform a Chi-Square test of independence."
         var1_label = "First Variable (Rows)"
@@ -508,7 +508,7 @@ elif page == t["desc_stats"]:
         vis_title, hist_title, qq_title = "### 🎨 الرؤية البصرية للبيانات", "المدرج التكراري (Histogram) مع صندوق القيم الشاذة", "**رسم الـ Q-Q Plot للطبيعية**"
         no_num_msg = "البيانات الموجودة في الذاكرة لا تحتوي على متغيرات رقمية. يرجى التأكد من البيانات."
         
-        # --- قاموس اختبار كاي (لضمان الاستقرار التام) ---
+        # --- قاموس اختبار كاي ---
         chi_title = "🎲 الجدول المزدوج واختبار كاي تربيع (Chi-Square)"
         chi_desc = "اختر متغيرين لإنشاء جدول التكرار المزدوج وإجراء اختبار الاستقلالية."
         var1_label = "المتغير الأول (الصفوف)"
@@ -533,13 +533,101 @@ elif page == t["desc_stats"]:
         st.success(ready_msg)
         
         # ==========================================
-        # 2️⃣ القسم الثاني: الجدول المزدوج واختبار كاي (يظهر دائمًا أسفل الجناح)
+        # 1️⃣ القسم الأول: الإحصاء الوصفي للمتغيرات الرقمية
+        # ==========================================
+        numeric_cols = df.select_dtypes(include=['float64', 'int64']).columns.tolist()
+        
+        if len(numeric_cols) > 0:
+            selected_col = st.selectbox(select_col_msg, numeric_cols)
+            data_col = df[selected_col].dropna()
+            
+            if st.button(btn_msg):
+                with st.spinner(spinner_msg):
+                    import numpy as np
+                    from scipy import stats
+                    import plotly.express as px
+                    import matplotlib.pyplot as plt
+                    
+                    # الحسابات الإحصائية
+                    mean = np.mean(data_col)
+                    median = np.median(data_col)
+                    mode_result = stats.mode(data_col, keepdims=False)
+                    mode = mode_result.mode if hasattr(mode_result, 'mode') else mode_result[0]
+                    pos_data = data_col.loc[data_col > 0]
+                    geom_mean = stats.gmean(pos_data) if not pos_data.empty else np.nan
+                    harm_mean = stats.hmean(pos_data) if not pos_data.empty else np.nan
+                    
+                    data_range = np.ptp(data_col)
+                    iqr = stats.iqr(data_col)
+                    variance = np.var(data_col, ddof=1)
+                    std_dev = np.std(data_col, ddof=1)
+                    mad = (data_col - mean).abs().mean()
+                    cv = (std_dev / mean) * 100 if mean != 0 else np.nan
+                    
+                    skewness = stats.skew(data_col)
+                    kurtosis = stats.kurtosis(data_col)
+                    
+                    std_data = (data_col - mean) / std_dev
+                    ks_stat, p_value = stats.kstest(std_data, 'norm')
+                    
+                    # العرض الديناميكي
+                    st.markdown(cat1)
+                    c1, c2, c3, c4, c5 = st.columns(5)
+                    c1.metric(m_mean, f"{mean:.4f}")
+                    c2.metric(m_median, f"{median:.4f}")
+                    c3.metric(m_mode, f"{mode:.4f}")
+                    c4.metric(m_geom, f"{geom_mean:.4f}")
+                    c5.metric(m_harm, f"{harm_mean:.4f}")
+                    
+                    st.markdown(cat2)
+                    d1, d2, d3, d4, d5 = st.columns(5)
+                    d1.metric(m_var, f"{variance:.4f}")
+                    d2.metric(m_std, f"{std_dev:.4f}")
+                    d3.metric(m_range, f"{data_range:.4f}")
+                    d4.metric(m_iqr, f"{iqr:.4f}")
+                    d5.metric(m_cv, f"{cv:.2f}%")
+                    
+                    st.markdown(cat3)
+                    s1, s2, s3 = st.columns(3)
+                    s1.metric(m_skew, f"{skewness:.4f}")
+                    s2.metric(m_kurt, f"{kurtosis:.4f}")
+                    s3.metric(m_mad, f"{mad:.4f}")
+                    
+                    st.markdown(cat4)
+                    k1, k2 = st.columns(2)
+                    k1.metric(m_ks, f"{ks_stat:.4f}")
+                    k2.metric(m_pval, f"{p_value:.4f}")
+                    
+                    if p_value > 0.05:
+                        st.success(ks_pass)
+                    else:
+                        st.warning(ks_fail)
+                        
+                    st.markdown(vis_title)
+                    vcol1, vcol2 = st.columns(2)
+                    
+                    with vcol1:
+                        fig_hist = px.histogram(data_frame=df, x=selected_col, marginal="box", 
+                                                title=hist_title, color_discrete_sequence=['#2E86C1'])
+                        st.plotly_chart(fig_hist, use_container_width=True)
+                        
+                    with vcol2:
+                        st.markdown(qq_title)
+                        fig, ax = plt.subplots(figsize=(6, 4))
+                        stats.probplot(data_col, dist="norm", plot=ax)
+                        ax.set_title("")
+                        ax.get_lines()[0].set_markerfacecolor('#2E86C1')
+                        st.pyplot(fig)
+        else:
+            st.warning(no_num_msg)
+            
+        # ==========================================
+        # 2️⃣ القسم الثاني: الجدول المزدوج واختبار كاي مع الرسم
         # ==========================================
         st.markdown("---")
         st.markdown(f"<h3 style='color: #2E86C1;'>{chi_title}</h3>", unsafe_allow_html=True)
         st.write(chi_desc)
         
-        # قراءة جميع الأعمدة (تم استبدال df_desc بـ df لتفادي الأخطاء)
         cat_cols = df.columns.tolist()
         
         if len(cat_cols) >= 2:
@@ -551,16 +639,16 @@ elif page == t["desc_stats"]:
                 if var_1 == var_2:
                     st.warning("يرجى اختيار متغيرين مختلفين!" if selected_lang == "العربية" else "Please select two different variables!")
                 else:
-                    # 1. بناء وعرض الجدول المزدوج
+                    # بناء وعرض الجدول المزدوج
                     crosstab_df = pd.crosstab(df[var_1], df[var_2])
                     st.markdown(f"**{res_crosstab}**")
                     st.dataframe(crosstab_df, use_container_width=True)
                     
-                    # 2. إجراء الحساب الإحصائي
+                    # إجراء الحساب الإحصائي
                     import scipy.stats as stats
                     chi2, p_val_chi, dof, expected = stats.chi2_contingency(crosstab_df)
                     
-                    # 3. عرض النتائج بتنسيق مصغر وأنيق
+                    # عرض النتائج
                     c1, c2, c3 = st.columns(3)
                     c1.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_stat}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{chi2:.4f}</span></div>", unsafe_allow_html=True)
                     c2.markdown(f"<div style='text-align: center; background-color: #f0f2f6; padding: 10px; border-radius: 5px;'><b>{res_pval}</b><br><span style='font-size: 1.2rem; color: #2E86C1;'>{p_val_chi:.4f}</span></div>", unsafe_allow_html=True)
@@ -568,11 +656,37 @@ elif page == t["desc_stats"]:
                     
                     st.markdown("<br>", unsafe_allow_html=True)
                     
-                    # 4. التفسير والقرار الإحصائي
+                    # التفسير والقرار الإحصائي
                     if p_val_chi < 0.05:
                         st.warning(res_sig)
                     else:
                         st.success(res_not_sig)
+                        
+                    # 🎨 الرسم البياني التفاعلي
+                    st.markdown("---")
+                    st.markdown("### 📊 الرؤية البصرية للجدول المزدوج" if selected_lang == "العربية" else "### 📊 Cross-Tabulation Visualization")
+                    
+                    t_col, x_col, l_col = st.columns(3)
+                    chart_title = t_col.text_input("عنوان الرسم" if selected_lang == "العربية" else "Chart Title", value=f"{var_1} vs {var_2}", key="c_title")
+                    x_label = x_col.text_input("اسم المحور الأفقي (X)" if selected_lang == "العربية" else "X-Axis Label", value=var_1, key="c_xlab")
+                    l_label = l_col.text_input("اسم مفتاح الألوان (Legend)" if selected_lang == "العربية" else "Legend Label", value=var_2, key="c_llab")
+                    
+                    import plotly.express as px
+                    chart_df = crosstab_df.reset_index()
+                    melted_df = chart_df.melt(id_vars=var_1, value_vars=crosstab_df.columns, var_name=var_2, value_name='Count')
+                    
+                    y_label = 'التكرار' if selected_lang == 'العربية' else 'Frequency / Count'
+                    
+                    fig_bar = px.bar(melted_df, x=var_1, y='Count', color=var_2, barmode='group',
+                                 title=chart_title,
+                                 labels={var_1: x_label, var_2: l_label, 'Count': y_label},
+                                 color_discrete_sequence=px.colors.qualitative.Pastel)
+                    
+                    fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
+                    st.plotly_chart(fig_bar, use_container_width=True)
+                    
+        else:
+            st.info(chi_no_cat)
                         
                     # ==========================================
                     # 🎨 5. الرسم البياني التفاعلي للجدول المزدوج
