@@ -714,7 +714,7 @@ elif page == t["desc_stats"]:
                      color_discrete_sequence=px.colors.qualitative.Pastel)
         
                     # تحسين شكل الرسم
-                    fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
+                fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
                     st.plotly_chart(fig_bar, use_container_width=True)
                     
         else:
