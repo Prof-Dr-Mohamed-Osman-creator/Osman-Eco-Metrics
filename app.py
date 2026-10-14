@@ -713,12 +713,12 @@ elif page == t["desc_stats"]:
                      labels={var_1: x_label, var_2: l_label, 'Count': y_label},
                      color_discrete_sequence=px.colors.qualitative.Pastel)
         
-        # تحسين شكل الرسم
-        fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
-        st.plotly_chart(fig_bar, use_container_width=True)
+                    # تحسين شكل الرسم
+                    fig_bar.update_layout(title_x=0.5, template="plotly_white", margin=dict(t=50, l=0, r=0, b=0))
+                    st.plotly_chart(fig_bar, use_container_width=True)
                     
-    else:
-        st.info(chi_no_cat)
+        else:
+            st.info(chi_no_cat)
                         
 # ==========================================
 # 📂 بوابة البيانات الشاملة (Comprehensive Data Portal)
